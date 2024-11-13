@@ -1,19 +1,26 @@
 const axios = require('axios');
 
-// Get weather data for a specific location
 exports.getWeatherData = async (req, res) => {
     try {
-        const { latitude, longitude } = req.query;
-        
-        // Replace with your weather API URL and key
-        const response = await axios.get(`https://api.weatherapi.com/v1/current.json`, {
+        const { latitude, longitude } = req.query; // Retrieve from query params
+
+        const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
             params: {
-                key: process.env.WEATHER_API_KEY,
-                q: `${latitude},${longitude}`
+                lat: latitude,
+                lon: longitude,
+                appid: process.env.WEATHER_API_KEY,
+                units: 'metric' // Celsius; change to 'imperial' for Fahrenheit
             }
         });
 
-        res.json(response.data);
+        // Parse relevant data for a simpler response
+        const weatherInfo = {
+            temperature: response.data.main.temp,
+            condition: response.data.weather[0].main, // e.g., "Rain", "Snow", "Clear"
+            description: response.data.weather[0].description // e.g., "light rain", "scattered clouds"
+        };
+
+        res.json(weatherInfo);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching weather data' });
     }
