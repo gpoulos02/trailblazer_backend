@@ -1,57 +1,152 @@
 [
     {
       "POI_id": 1,
-      "POI_name": "Base Lodge",
-      "type": "lodging"
+      "POI_name": "Orchard Express",
+      "type": "chairlift"
     },
     {
       "POI_id": 2,
-      "POI_name": "Parking Lot A",
+      "POI_name": "parking1",
       "type": "parking lot"
     },
     {
       "POI_id": 3,
-      "POI_name": "Main Chairlift Station",
+      "POI_name": "Voyager Quad",
       "type": "chairlift"
     },
     {
       "POI_id": 4,
-      "POI_name": "Parking Lot A",
-      "type": "parking lot"
+      "POI_name": "Explorer",
+      "type": "chairlift"
     },
     {
       "POI_id": 5,
-      "POI_name": "Main Chairlift Station",
+      "POI_name": "Little Ripper",
       "type": "chairlift"
     },
     {
       "POI_id": 6,
-      "POI_name": "Parking Lot A",
-      "type": "parking lot"
+      "POI_name": "South Base Eatery",
+      "type": "restaurant"
     },
     {
       "POI_id": 7,
-      "POI_name": "Main Chairlift Station",
-      "type": "chairlift"
+      "POI_name": "Bullwheel Pub",
+      "type": "restaurant"
     },
     {
       "POI_id": 8,
-      "POI_name": "Parking Lot A",
-      "type": "parking lot"
-    },
-    {
-      "POI_id": 9,
-      "POI_name": "Main Chairlift Station",
+      "POI_name": "Southern Comfort",
       "type": "chairlift"
     },
     {
+      "POI_id": 9,
+      "POI_name": "Westin Trillium House",
+      "type": "lodging"
+    },
+    {
       "POI_id": 10,
-      "POI_name": "Parking Lot A",
-      "type": "parking lot"
+      "POI_name": "Mosaic Boutique Suites",
+      "type": "lodging"
     },
     {
       "POI_id": 11,
-      "POI_name": "Main Chairlift Station",
+      "POI_name": "Plunge Aquatic Centre",
+      "type": "other"
+    },
+    {
+      "POI_id": 12,
+      "POI_name": "Weider Lodge",
+      "type": "lodging"
+    },
+    {
+      "POI_id": 13,
+      "POI_name": "Seasons at Blue",
+      "type": "lodging"
+    },
+    {
+      "POI_id": 14,
+      "POI_name": "Grand Georgian",
+      "type": "lodging"
+    },
+    {
+      "POI_id": 15,
+      "POI_name": "Silver Bullet",
+      "type": "chairlift"
+    },
+    {
+      "POI_id": 16,
+      "POI_name": "parking2",
+      "type": "parking lot"
+    },
+    {
+      "POI_id": 17,
+      "POI_name": "Easy Rider",
+      "type": "chairlift"
+    },
+    {
+      "POI_id": 18,
+      "POI_name": "Resort Homes 1",
+      "type": "lodging"
+    },
+    {
+      "POI_id": 19,
+      "POI_name": "Resort Homes 2",
+      "type": "lodging"
+    },
+    {
+      "POI_id": 20,
+      "POI_name": "Graduate Triple",
+      "type": "chairlift"
+    },
+    {
+      "POI_id": 21,
+      "POI_name": "Undergrad",
+      "type": "chairlift"
+    },
+    {
+      "POI_id": 22,
+      "POI_name": "Valley Express",
+      "type": "chairlift"
+    },
+    {
+      "POI_id": 23,
+      "POI_name": "Jozo's Original Apres",
+      "type": "restaurant"
+    },
+    {
+      "POI_id": 24,
+      "POI_name": "Blue Mountain Inn",
+      "type": "lodging"
+    },
+    {
+      "POI_id": 25,
+      "POI_name": "The Pottery Alpine Restaurant",
+      "type": "restaurant"
+    },
+    {
+      "POI_id": 26,
+      "POI_name": "parking3",
+      "type": "parking lot"
+    },
+    {
+      "POI_id": 27,
+      "POI_name": "Resort Homes 3",
+      "type": ""
+    },
+    {
+      "POI_id": 28,
+      "POI_name": "Weider Express",
+      "type": "chairlift"
+    },
+    {
+      "POI_id": 29,
+      "POI_name": "parking4",
+      "type": "parking lot"
+    },
+    {
+      "POI_id": 30,
+      "POI_name": "N Rope",
       "type": "chairlift"
     }
   ]

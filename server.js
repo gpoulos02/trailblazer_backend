@@ -19,12 +19,14 @@ const authRoutes = require('./routes/authRoutes');
 const routeRoutes = require('./routes/routeRoutes');
 const metricsRoutes = require('./routes/metricsRoutes');
 const weatherRoutes = require('./routes/weatherRoutes');
+const poiRoutes = require('./routes/poiRoutes');
 
 // Define routes
 app.use('/api/auth', authRoutes);         // Authentication routes
 app.use('/api/routes', routeRoutes);       // Route planning/navigation routes
 app.use('/api/metrics', metricsRoutes);    // Performance metrics routes
 app.use('/api/weather', weatherRoutes);    // Weather data routes
+app.use('/api/pois', poiRoutes);            // Add POI routes
 
 // Root route for basic check
 app.get('/', (req, res) => {
