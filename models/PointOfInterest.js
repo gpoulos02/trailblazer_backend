@@ -5,11 +5,11 @@ const Schema = mongoose.Schema;
 const pointOfInterestSchema = new Schema({
   POI_id: { type: Number, required: true, unique: true },
   POI_name: { type: String, required: true },
-  POI_coordinates: {
-    long: { type: Number, required: true }, // Longitude
-    lat: { type: Number, required: true }   // Latitude
-  },
-  associatedHills: [{ type: Schema.Types.ObjectId, ref: 'BlueMountainTrail' }]  // Refers to Trails
+  type: { 
+    type: String, 
+    enum: ['lodging', 'parking lot', 'other', 'chairlift', 'restaurant'], 
+    required: true 
+  } // POI type (lodging, parking lot, chairlift, etc.)
 });
 
 // Create a model from the schema

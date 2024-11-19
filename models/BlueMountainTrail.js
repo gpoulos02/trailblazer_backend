@@ -7,29 +7,13 @@ const trailSchema = new Schema({
   runName: { type: String, required: true },
   difficulty: { 
     type: String, 
-    enum: ['Green', 'Blue', 'Black', 'Double Black'], 
+    enum: ['green', 'blue', 'black', 'double black'], 
     required: true 
   },
-  startingPoints: [
-    {
-      chairlifts: [{ type: Schema.Types.ObjectId, ref: 'PointOfInterest' }], // Chairlifts going into it
-      runs: [{ type: Number }] // runIDs connecting to this starting point
-    }
-  ],
-  endingPoints: [
-    {
-      type: {
-        type: String,
-        enum: ['Lodging', 'Parking Lot', 'Other', 'Chairlift', 'Restaurant', 'Run'],
-        required: true
-      },
-      POI_id: { type: Number, required: true } // Reference to the point of interest's ID
-    }
-  ],
-  coordinates: {
-    long: { type: Number, required: true }, // Longitude
-    lat: { type: Number, required: true }   // Latitude
-  }
+  startingLift: { type: Number, ref: 'Chairlift' }, // Reference to liftID of the starting lift
+  parentTrail: { type: Number, ref: 'BlueMountainTrail' }, // Reference to runID of the parent trail (optional)
+  childTrails: [{ type: Number, ref: 'BlueMountainTrail' }], // References to runIDs of child trails
+  endingPoints: [{ type: Number, ref: 'PointOfInterest' }] // References to POI_ids for the ending points
 });
 
 // Create a model from the schema

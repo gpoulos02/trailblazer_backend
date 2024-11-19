@@ -1,0 +1,58 @@
+[
+    {
+      "POI_id": 1,
+      "POI_name": "Base Lodge",
+      "type": "lodging"
+    },
+    {
+      "POI_id": 2,
+      "POI_name": "Parking Lot A",
+      "type": "parking lot"
+    },
+    {
+      "POI_id": 3,
+      "POI_name": "Main Chairlift Station",
+      "type": "chairlift"
+    },
+    {
+      "POI_id": 4,
+      "POI_name": "Parking Lot A",
+      "type": "parking lot"
+    },
+    {
+      "POI_id": 5,
+      "POI_name": "Main Chairlift Station",
+      "type": "chairlift"
+    },
+    {
+      "POI_id": 6,
+      "POI_name": "Parking Lot A",
+      "type": "parking lot"
+    },
+    {
+      "POI_id": 7,
+      "POI_name": "Main Chairlift Station",
+      "type": "chairlift"
+    },
+    {
+      "POI_id": 8,
+      "POI_name": "Parking Lot A",
+      "type": "parking lot"
+    },
+    {
+      "POI_id": 9,
+      "POI_name": "Main Chairlift Station",
+      "type": "chairlift"
+    },
+    {
+      "POI_id": 10,
+      "POI_name": "Parking Lot A",
+      "type": "parking lot"
+    },
+    {
+      "POI_id": 11,
+      "POI_name": "Main Chairlift Station",
+      "type": "chairlift"
+    }
+  ]
+  
