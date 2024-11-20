@@ -1,9 +1,9 @@
-// Load environment variables
-require('dotenv').config();
-
-// Import dependencies
+const fs = require('fs');
+const https = require('https');
 const express = require('express');
 const connectDB = require('./config/db');
+require('dotenv').config();
+
 
 // Connect to MongoDB
 connectDB();
@@ -12,7 +12,7 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(express.json()); // For parsing JSON request bodies
+app.use(express.json());
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -22,19 +22,25 @@ const weatherRoutes = require('./routes/weatherRoutes');
 const poiRoutes = require('./routes/poiRoutes');
 
 // Define routes
-app.use('/api/auth', authRoutes);         // Authentication routes
-app.use('/api/routes', routeRoutes);       // Route planning/navigation routes
-app.use('/api/metrics', metricsRoutes);    // Performance metrics routes
-app.use('/api/weather', weatherRoutes);    // Weather data routes
-app.use('/api/pois', poiRoutes);            // Add POI routes
+app.use('/api/auth', authRoutes);
+app.use('/api/routes', routeRoutes);
+app.use('/api/metrics', metricsRoutes);
+app.use('/api/weather', weatherRoutes);
+app.use('/api/pois', poiRoutes);
 
-// Root route for basic check
+// Root route
 app.get('/', (req, res) => {
-    res.send('Welcome to the TrailBlazer API!');
+    res.send('Welcome to the secure TrailBlazer API!');
 });
 
-// Start the server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// SSL/TLS configuration
+const options = {
+    key: fs.readFileSync('./ssl/private.key'),
+    cert: fs.readFileSync('./ssl/certificate.crt'),
+};
+
+// Start HTTPS server
+const PORT = process.env.PORT || 5001;
+https.createServer(options, app).listen(PORT, () => {
+    console.log(`HTTPS Server running on port ${PORT}`);
 });

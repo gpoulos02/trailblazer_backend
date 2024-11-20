@@ -5,21 +5,22 @@ const jwt = require('jsonwebtoken');
 // Register a new user
 exports.register = async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, firstName, lastName, email, userID } = req.body;
 
-        // Check if the user already exists
-        let user = await User.findOne({ username });
+        // Check if the username or email already exists
+        let user = await User.findOne({ $or: [{ username }, { email }] });
         if (user) return res.status(400).json({ message: 'User already exists' });
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create new user
-        user = new User({ username, password: hashedPassword });
+        user = new User({ username, password: hashedPassword, firstName, lastName, email, userID });
         await user.save();
 
         res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -44,3 +45,4 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
