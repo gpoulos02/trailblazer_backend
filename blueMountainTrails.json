@@ -18,7 +18,7 @@
       "parentTrail": 1,
       "childTrails": [],
       "endingPoints": [1, 2],
-      "mergesTo": [3]
+      "mergesTo": [3],
       "isEnd": false
     },
     {
@@ -30,7 +30,7 @@
       "childTrails": [],
       "endingPoints": [1, 2],
 
-      "mergesTo": [1]
+      "mergesTo": [1],
       "isEnd": false
     },
     {
