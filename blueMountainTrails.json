@@ -1,48 +1,502 @@
 [
     {
-      "runID": null,
-      "runName": "",
-      "difficulty": "",
-      "startingLift": null,
+      "runID": 1,
+      "runName": "Gord's Grove",
+      "difficulty": "green",
+      "startingLift": 1,
       "parentTrail": null,
-      "childTrails": [],
-      "endingPoints": [null]
+      "childTrails": [2, 3, 4],
+      "endingPoints": [1, 2],
+      "isEnd": true
     },
     {
-      "runID": null,
-      "runName": "",
-      "difficulty": "",
-      "startingLift": null,
-      "parentTrail": null,
+      "runID": 2,
+      "runName": "Founder",
+      "difficulty": "blue",
+      "startingLift": 1,
+      "parentTrail": 1,
       "childTrails": [],
-      "endingPoints": [null]
+      "endingPoints": [1, 2],
+      "isEnd": true
     },
     {
-      "runID": null,
-      "runName": "",
-      "difficulty": "",
-      "startingLift": null,
-      "parentTrail": null,
+      "runID": 3,
+      "runName": "Finally",
+      "difficulty": "blue",
+      "startingLift": 1,
+      "parentTrail": 1,
       "childTrails": [],
-      "endingPoints": [null]
+      "endingPoints": [1, 2],
+      "isEnd": true
     },
     {
-      "runID": null,
-      "runName": "",
-      "difficulty": "",
-      "startingLift": null,
-      "parentTrail": null,
+      "runID": 4,
+      "runName": "Juicer",
+      "difficulty": "blue",
+      "startingLift": 1,
+      "parentTrail": 1,
       "childTrails": [],
-      "endingPoints": [null]
+      "endingPoints": [1, 2],
+      "isEnd": true
     },
     {
-      "runID": null,
-      "runName": "",
-      "difficulty": "",
+      "runID": 5,
+      "runName": "Badlands Terrain Park",
+      "difficulty": "double black",
+      "startingLift": 1,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [1, 2],
+      "isEnd": true
+    },
+    {
+      "runID": 6,
+      "runName": "Butternut",
+      "difficulty": "blue",
+      "startingLift": 1,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [1, 2],
+      "isEnd": true
+    },
+    {
+      "runID": 7,
+      "runName": "Southern Cross",
+      "difficulty": "green",
+      "startingLift": 1,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [1, 2],
+      "isEnd": true
+    },
+    {
+      "runID": 8,
+      "runName": "Enchanted Forest",
+      "difficulty": "green",
+      "startingLift": 3,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [3],
+      "isEnd": true
+    },
+    {
+      "runID": 9,
+      "runName": "Big Baby",
+      "difficulty": "green",
+      "startingLift": 3,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [3],
+      "isEnd": true
+    },
+    {
+      "runID": 10,
+      "runName": "Mary Jane's Lane",
+      "difficulty": "green",
+      "startingLift": 3,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [3],
+      "isEnd": true
+    },
+    {
+      "runID": 11,
+      "runName": "Explorer",
+      "difficulty": "green",
+      "startingLift": 5,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [3,4,5],
+      "isEnd": true
+    },
+    {
+      "runID": 12,
+      "runName": "Little Ripper",
+      "difficulty": "green",
+      "startingLift": 4,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [3, 4, 5],
+      "isEnd": true
+    },
+    {
+      "runID": 13,
+      "runName": "Waterfall",
+      "difficulty": "blue",
+      "startingLift": 2,
+      "parentTrail": null,
+      "childTrails": [14],
+      "endingPoints": [6, 7, 8],
+      "isEnd": true
+    },
+    {
+      "runID": 14,
+      "runName": "Crooked Oak",
+      "difficulty": "black",
+      "startingLift": 2,
+      "parentTrail": 13,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8],
+      "isEnd": true
+    },
+    {
+      "runID": 15,
+      "runName": "Sunrise",
+      "difficulty": "blue",
+      "startingLift": 2,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8],
+      "isEnd": true
+    },
+    {
+      "runID": 16,
+      "runName": "Cruiser",
+      "difficulty": "blue",
+      "startingLift": 2,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8],
+      "isEnd": true
+    },
+    {
+      "runID": 17,
+      "runName": "Dr. Doug",
+      "difficulty": "blue",
+      "startingLift": 2,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8],
+      "isEnd": true
+    },
+    {
+      "runID": 18,
+      "runName": "Susan's Hideaway",
+      "difficulty": "blue",
+      "startingLift": 6,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": false
+    },
+    {
+      "runID": 19,
+      "runName": "L-Park Terrain Park",
+      "difficulty": "double black",
+      "startingLift": 6,
+      "parentTrail": null,
+      "childTrails": [20],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": true
+    },
+    {
+      "runID": 20,
+      "runName": "L-Hill",
+      "difficulty": "blue",
+      "startingLift": 6,
+      "parentTrail": 19,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": true
+    },
+    {
+      "runID": 21,
+      "runName": "Village Way",
+      "difficulty": "blue",
       "startingLift": null,
       "parentTrail": null,
       "childTrails": [],
-      "endingPoints": [null]
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": true
+    },
+    {
+      "runID": 22,
+      "runName": "Easy Rider",
+      "difficulty": "green",
+      "startingLift": 8,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": true
+    },
+    {
+      "runID": 23,
+      "runName": "Undergrad",
+      "difficulty": "green",
+      "startingLift": 9,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": true
+    },
+    {
+      "runID": 24,
+      "runName": "Graduate",
+      "difficulty": "green",
+      "startingLift": 7,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": true
+    },
+    {
+      "runID": 25,
+      "runName": "Legacy",
+      "difficulty": "blue",
+      "startingLift": 10,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [22, 23, 24, 25, 26],
+      "isEnd": true
+    },
+    {
+      "runID": 26,
+      "runName": "Apple Bowl",
+      "difficulty": "blue",
+      "startingLift": 10,
+      "parentTrail": null,
+      "childTrails": [27],
+      "endingPoints": [22, 23, 24, 25, 26],
+      "isEnd": true
+    },
+    {
+      "runID": 27,
+      "runName": "Calamity Lane",
+      "difficulty": "double black",
+      "startingLift": 10,
+      "parentTrail": 26,
+      "childTrails": [],
+      "endingPoints": [22, 23, 24, 25, 26],
+      "isEnd": true
+    },
+    {
+      "runID": 28,
+      "runName": "Willy's",
+      "difficulty": "double black",
+      "startingLift": 10,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [22, 23, 24, 25, 26, 27],
+      "isEnd": true
+    },
+    {
+      "runID": 29,
+      "runName": "Dog Sled",
+      "difficulty": "blue",
+      "startingLift": null,
+      "parentTrail": 30,
+      "childTrails": [],
+      "endingPoints": [28, 29],
+      "isEnd": true
+    },
+    {
+      "runID": 30,
+      "runName": "Happy Valley",
+      "difficulty": "green",
+      "startingLift": 10,
+      "parentTrail": null,
+      "childTrails": [29],
+      "endingPoints": [22, 23, 24, 25, 26, 27],
+      "isEnd": true
+    },
+    {
+      "runID": 31,
+      "runName": "Going South",
+      "difficulty": "blue",
+      "startingLift": 11,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [22, 23, 24, 25, 26, 27, 28, 29],
+      "isEnd": false
+    },
+    {
+      "runID": 32,
+      "runName": "Elevator Shaft",
+      "difficulty": "double black",
+      "startingLift": 11,
+      "parentTrail": 33,
+      "childTrails": [],
+      "endingPoints": [28, 29],
+      "isEnd": true
+    },
+    {
+      "runID": 33,
+      "runName": "Hog's Back",
+      "difficulty": "black",
+      "startingLift": 11,
+      "parentTrail": null,
+      "childTrails": [32],
+      "endingPoints": [29, 29],
+      "isEnd": false
+    },
+    {
+      "runID": 34,
+      "runName": "Avalanche",
+      "difficulty": "double black",
+      "startingLift": 11,
+      "parentTrail": 35,
+      "childTrails": [],
+      "endingPoints": [28, 29],
+      "isEnd": true
+    },
+    {
+      "runID": 35,
+      "runName": "Spectacular",
+      "difficulty": "double black",
+      "startingLift": 11,
+      "parentTrail": null,
+      "childTrails": [34],
+      "endingPoints": [28, 29],
+      "isEnd": true
+    },
+    {
+      "runID": 36,
+      "runName": "Little Devil",
+      "difficulty": "double black",
+      "startingLift": 11,
+      "parentTrail": 35,
+      "childTrails": [],
+      "endingPoints": [29, 30],
+      "isEnd": true
+    },
+    {
+      "runID": 37,
+      "runName": "Senator/Laraway",
+      "difficulty": "black",
+      "startingLift": 11,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [29, 30],
+      "isEnd": true
+    },
+    {
+      "runID": 38,
+      "runName": "Lone Rider",
+      "difficulty": "double black",
+      "startingLift": 11,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [29, 30],
+      "isEnd": true
+    },
+    {
+        "runID": 39,
+        "runName": "Starting Gate",
+        "difficulty": "double black",
+        "startingLift": 11,
+        "parentTrail": null,
+        "childTrails": [],
+        "endingPoints": [29, 30],
+        "isEnd": true
+      },
+      {
+        "runID": 40,
+        "runName": "Rabbit's Run",
+        "difficulty": "black",
+        "startingLift": 11,
+        "parentTrail": null,
+        "childTrails": [],
+        "endingPoints": [29, 30],
+        "isEnd": true
+      },
+      {
+        "runID": 41,
+        "runName": "Schuss",
+        "difficulty": "blue",
+        "startingLift": 11,
+        "parentTrail": null,
+        "childTrails": [],
+        "endingPoints": [29, 30],
+        "isEnd": true
+      },
+      {
+        "runID": 42,
+        "runName": "Kandahar",
+        "difficulty": "black",
+        "startingLift": 11,
+        "parentTrail": null,
+        "childTrails": [43],
+        "endingPoints": [29, 30],
+        "isEnd": true
+      },
+      {
+        "runID": 43,
+        "runName": "Dieppe",
+        "difficulty": "black",
+        "startingLift": 11,
+        "parentTrail": 42,
+        "childTrails": [],
+        "endingPoints": [29, 30],
+        "isEnd": false
+      },
+    {
+      "runID": 44,
+      "runName": "Rinus Run",
+      "difficulty": "black",
+      "startingLift": 6,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": true
+    },
+    {
+      "runID": 45,
+      "runName": "Memory Lane",
+      "difficulty": "black",
+      "startingLift": 6,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": true
+    },
+    {
+      "runID": 46,
+      "runName": "Tranquility",
+      "difficulty": "blue",
+      "startingLift": 6,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": true
+    },
+    {
+      "runID": 47,
+      "runName": "Smart Alec",
+      "difficulty": "blue",
+      "startingLift": 6,
+      "parentTrail": null,
+      "childTrails": [48],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": true
+    },
+    {
+      "runID": 48,
+      "runName": "Yahoo Terrain Park",
+      "difficulty": "double black",
+      "startingLift": 6,
+      "parentTrail": 47,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": false
+    },
+    {
+      "runID": 49,
+      "runName": "Due North",
+      "difficulty": "green",
+      "startingLift": 6,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [22, 23, 24, 25, 26, 27],
+      "isEnd": false
+    }, 
+    {
+      "runID": 50,
+      "runName": "Burner",
+      "difficulty": "black",
+      "startingLift": 10,
+      "parentTrail": null,
+      "childTrails": [],
+      "endingPoints": [22, 23, 24, 25, 26, 27],
+      "isEnd": true
     }
-  ]
-  
+]

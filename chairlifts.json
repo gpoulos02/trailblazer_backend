@@ -64,6 +64,11 @@
       "liftName": "Weider Express",
       "topTrails": [],
       "bottomPOI": null
-    }
+    },{
+        "liftID": 12,
+        "liftName": "N Rope",
+        "topTrails": [],
+        "bottomPOI": null
+      }
   ]
   
