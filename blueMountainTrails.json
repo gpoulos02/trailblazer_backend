@@ -7,7 +7,8 @@
       "parentTrail": null,
       "childTrails": [2, 3, 4],
       "endingPoints": [1, 2],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 2,
@@ -17,6 +18,7 @@
       "parentTrail": 1,
       "childTrails": [],
       "endingPoints": [1, 2],
+      "mergesTo": [3]
       "isEnd": false
     },
     {
@@ -27,6 +29,8 @@
       "parentTrail": 1,
       "childTrails": [],
       "endingPoints": [1, 2],
+
+      "mergesTo": [1]
       "isEnd": false
     },
     {
@@ -37,17 +41,19 @@
       "parentTrail": 1,
       "childTrails": [],
       "endingPoints": [1, 2],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 5,
       "runName": "Badlands Terrain Park",
       "difficulty": "double black",
       "startingLift": 1,
-      "parentTrail": null,
+      "parentTrail": 6,
       "childTrails": [],
       "endingPoints": [1, 2],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 6,
@@ -55,9 +61,10 @@
       "difficulty": "blue",
       "startingLift": 1,
       "parentTrail": null,
-      "childTrails": [],
+      "childTrails": [5],
       "endingPoints": [1, 2],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 7,
@@ -65,11 +72,10 @@
       "difficulty": "green",
       "startingLift": 1,
       "parentTrail": null,
-      "childTrails": [],
+      "childTrails": [10],
       "endingPoints": [1, 2],
       "isEnd": true,
-      "connectsTo": [10],
-      "connectsFrom": [null]
+      "mergesTo": []
     },
     {
       "runID": 8,
@@ -78,8 +84,9 @@
       "startingLift": 3,
       "parentTrail": null,
       "childTrails": [],
-      "endingPoints": [3],
-      "isEnd": true
+      "endingPoints": [3, 4],
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 9,
@@ -88,18 +95,20 @@
       "startingLift": 3,
       "parentTrail": null,
       "childTrails": [],
-      "endingPoints": [3],
-      "isEnd": true
+      "endingPoints": [3, 4],
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 10,
       "runName": "Mary Jane's Lane",
       "difficulty": "green",
       "startingLift": 3,
-      "parentTrail": null,
+      "parentTrail": 7,
       "childTrails": [],
-      "endingPoints": [3],
-      "isEnd": true
+      "endingPoints": [3, 4],
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 11,
@@ -109,7 +118,8 @@
       "parentTrail": null,
       "childTrails": [],
       "endingPoints": [3,4,5],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 12,
@@ -119,7 +129,8 @@
       "parentTrail": null,
       "childTrails": [],
       "endingPoints": [3, 4, 5],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 13,
@@ -129,7 +140,8 @@
       "parentTrail": null,
       "childTrails": [14],
       "endingPoints": [6, 7, 8],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 14,
@@ -139,7 +151,8 @@
       "parentTrail": 13,
       "childTrails": [],
       "endingPoints": [6, 7, 8],
-      "isEnd": true
+      "isEnd": false,
+      "mergesTo": [13]
     },
     {
       "runID": 15,
@@ -147,9 +160,10 @@
       "difficulty": "blue",
       "startingLift": 2,
       "parentTrail": null,
-      "childTrails": [],
+      "childTrails": [51],
       "endingPoints": [6, 7, 8],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 16,
@@ -159,7 +173,8 @@
       "parentTrail": null,
       "childTrails": [],
       "endingPoints": [6, 7, 8],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 17,
@@ -167,9 +182,10 @@
       "difficulty": "blue",
       "startingLift": 2,
       "parentTrail": null,
-      "childTrails": [],
+      "childTrails": [52],
       "endingPoints": [6, 7, 8],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 18,
@@ -179,7 +195,8 @@
       "parentTrail": null,
       "childTrails": [],
       "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
-      "isEnd": false
+      "isEnd": false,
+      "mergesTo": [17]
     },
     {
       "runID": 19,
@@ -189,27 +206,30 @@
       "parentTrail": null,
       "childTrails": [20],
       "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
-      "isEnd": true
+      "isEnd": false,
+      "mergesTo": [20]
     },
     {
       "runID": 20,
       "runName": "L-Hill",
       "difficulty": "blue",
       "startingLift": 6,
-      "parentTrail": 19,
+      "parentTrail": 20,
       "childTrails": [],
       "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 21,
       "runName": "Village Way",
       "difficulty": "blue",
       "startingLift": null,
-      "parentTrail": null,
+      "parentTrail": 49,
       "childTrails": [],
       "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 22,
@@ -219,7 +239,8 @@
       "parentTrail": null,
       "childTrails": [],
       "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 23,
@@ -229,7 +250,8 @@
       "parentTrail": null,
       "childTrails": [],
       "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 24,
@@ -239,17 +261,19 @@
       "parentTrail": null,
       "childTrails": [],
       "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 25,
       "runName": "Legacy",
       "difficulty": "blue",
       "startingLift": 10,
-      "parentTrail": null,
+      "parentTrail": 49,
       "childTrails": [],
       "endingPoints": [22, 23, 24, 25, 26],
-      "isEnd": true
+      "isEnd": false,
+      "mergesTo": [26]
     },
     {
       "runID": 26,
@@ -259,7 +283,8 @@
       "parentTrail": null,
       "childTrails": [27],
       "endingPoints": [22, 23, 24, 25, 26],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 27,
@@ -269,7 +294,8 @@
       "parentTrail": 26,
       "childTrails": [],
       "endingPoints": [22, 23, 24, 25, 26],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 28,
@@ -279,17 +305,19 @@
       "parentTrail": null,
       "childTrails": [],
       "endingPoints": [22, 23, 24, 25, 26, 27],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 29,
       "runName": "Dog Sled",
       "difficulty": "blue",
-      "startingLift": null,
+      "startingLift": 10,
       "parentTrail": 30,
       "childTrails": [],
       "endingPoints": [28, 29],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 30,
@@ -299,7 +327,8 @@
       "parentTrail": null,
       "childTrails": [29],
       "endingPoints": [22, 23, 24, 25, 26, 27],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 31,
@@ -309,7 +338,8 @@
       "parentTrail": null,
       "childTrails": [],
       "endingPoints": [22, 23, 24, 25, 26, 27, 28, 29],
-      "isEnd": false
+      "isEnd": false,
+      "mergesTo": [30]
     },
     {
       "runID": 32,
@@ -319,7 +349,8 @@
       "parentTrail": 33,
       "childTrails": [],
       "endingPoints": [28, 29],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 33,
@@ -328,8 +359,9 @@
       "startingLift": 11,
       "parentTrail": null,
       "childTrails": [32],
-      "endingPoints": [29, 29],
-      "isEnd": false
+      "endingPoints": [28, 29],
+      "isEnd": false,
+      "mergesTo": [29]
     },
     {
       "runID": 34,
@@ -339,7 +371,8 @@
       "parentTrail": 35,
       "childTrails": [],
       "endingPoints": [28, 29],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 35,
@@ -347,9 +380,10 @@
       "difficulty": "double black",
       "startingLift": 11,
       "parentTrail": null,
-      "childTrails": [34],
+      "childTrails": [34, 36],
       "endingPoints": [28, 29],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 36,
@@ -359,7 +393,8 @@
       "parentTrail": 35,
       "childTrails": [],
       "endingPoints": [29, 30],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 37,
@@ -369,7 +404,8 @@
       "parentTrail": null,
       "childTrails": [],
       "endingPoints": [29, 30],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 38,
@@ -379,7 +415,8 @@
       "parentTrail": null,
       "childTrails": [],
       "endingPoints": [29, 30],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
         "runID": 39,
@@ -387,19 +424,21 @@
         "difficulty": "double black",
         "startingLift": 11,
         "parentTrail": null,
-        "childTrails": [],
+        "childTrails": [40],
         "endingPoints": [29, 30],
-        "isEnd": true
+        "isEnd": true,
+        "mergesTo": []
       },
       {
         "runID": 40,
         "runName": "Rabbit's Run",
         "difficulty": "black",
         "startingLift": 11,
-        "parentTrail": null,
+        "parentTrail": 39,
         "childTrails": [],
         "endingPoints": [29, 30],
-        "isEnd": true
+        "isEnd": true,
+        "mergesTo": []
       },
       {
         "runID": 41,
@@ -407,19 +446,21 @@
         "difficulty": "blue",
         "startingLift": 11,
         "parentTrail": null,
-        "childTrails": [],
+        "childTrails": [58],
         "endingPoints": [29, 30],
-        "isEnd": true
+        "isEnd": true,
+        "mergesTo": []
       },
       {
         "runID": 42,
-        "runName": "Kandahar",
+        "runName": "Kanadhar",
         "difficulty": "black",
         "startingLift": 11,
         "parentTrail": null,
         "childTrails": [43],
         "endingPoints": [29, 30],
-        "isEnd": true
+        "isEnd": true,
+        "mergesTo": []
       },
       {
         "runID": 43,
@@ -429,7 +470,8 @@
         "parentTrail": 42,
         "childTrails": [],
         "endingPoints": [29, 30],
-        "isEnd": false
+        "isEnd": false,
+        "mergesTo": [42]
       },
     {
       "runID": 44,
@@ -437,9 +479,10 @@
       "difficulty": "black",
       "startingLift": 6,
       "parentTrail": null,
-      "childTrails": [],
+      "childTrails": [53],
       "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 45,
@@ -447,9 +490,10 @@
       "difficulty": "black",
       "startingLift": 6,
       "parentTrail": null,
-      "childTrails": [],
+      "childTrails": [54],
       "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 46,
@@ -457,19 +501,21 @@
       "difficulty": "blue",
       "startingLift": 6,
       "parentTrail": null,
-      "childTrails": [],
+      "childTrails": [55],
       "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 47,
       "runName": "Smart Alec",
       "difficulty": "blue",
       "startingLift": 6,
-      "parentTrail": null,
+      "parentTrail": 49,
       "childTrails": [48],
       "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
-      "isEnd": true
+      "isEnd": true,
+      "mergesTo": []
     },
     {
       "runID": 48,
@@ -479,7 +525,8 @@
       "parentTrail": 47,
       "childTrails": [],
       "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
-      "isEnd": false
+      "isEnd": false,
+      "mergesTo": [47]
     },
     {
       "runID": 49,
@@ -487,18 +534,98 @@
       "difficulty": "green",
       "startingLift": 6,
       "parentTrail": null,
-      "childTrails": [],
+      "childTrails": [21, 25, 47],
       "endingPoints": [22, 23, 24, 25, 26, 27],
-      "isEnd": false
+      "isEnd": false,
+      "mergesTo": [25, 26, 30]
     }, 
     {
-      "runID": 50,
-      "runName": "Burner",
-      "difficulty": "black",
-      "startingLift": 10,
-      "parentTrail": null,
+      "runID": 51,
+      "runName": "Bear Trail Glades",
+      "difficulty": "double black",
+      "startingLift": 2,
+      "parentTrail": 15,
       "childTrails": [],
-      "endingPoints": [22, 23, 24, 25, 26, 27],
-      "isEnd": true
+      "endingPoints": [6, 7, 8],
+      "isEnd": false,
+      "mergesTo": [15]
+    },
+    {
+      "runID": 52,
+      "runName": "Dr. Doug to L-Hill",
+      "difficulty": "blue",
+      "startingLift": 2,
+      "parentTrail": 17,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": false,
+      "mergesTo": [20]
+    },
+    {
+      "runID": 53,
+      "runName": "Rinus Run to L-Hill",
+      "difficulty": "blue",
+      "startingLift": 6,
+      "parentTrail": 44,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": false,
+      "mergesTo": [20]
+    },
+    {
+      "runID": 54,
+      "runName": "Memory Lane to Rinus Run",
+      "difficulty": "blue",
+      "startingLift": 6,
+      "parentTrail": 45,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": false,
+      "mergesTo": [44, 53]
+    },
+    {
+      "runID": 55,
+      "runName": "Tranquility to Smart Alec",
+      "difficulty": "blue",
+      "startingLift": 6,
+      "parentTrail": 46,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": false,
+      "mergesTo": [47]
+    },
+    {
+      "runID": 56,
+      "runName": "Tranquility to Memory Lane",
+      "difficulty": "blue",
+      "startingLift": 6,
+      "parentTrail": 46,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": false,
+      "mergesTo": [45]
+    },
+    {
+      "runID": 57,
+      "runName": "Smart Alec to Village Way",
+      "difficulty": "blue",
+      "startingLift": 6,
+      "parentTrail": 47,
+      "childTrails": [],
+      "endingPoints": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 33, 34, 35, 36],
+      "isEnd": false,
+      "mergesTo": [21]
+    },
+    {
+      "runID": 58,
+      "runName": "Hell's Half Acre",
+      "difficulty": "blue",
+      "startingLift": 11,
+      "parentTrail": 42,
+      "childTrails": [],
+      "endingPoints": [29, 30],
+      "isEnd": false,
+      "mergesTo": [41]
     }
+
 ]
