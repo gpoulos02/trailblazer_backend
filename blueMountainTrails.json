@@ -17,7 +17,7 @@
       "parentTrail": 1,
       "childTrails": [],
       "endingPoints": [1, 2],
-      "isEnd": true
+      "isEnd": false
     },
     {
       "runID": 3,
@@ -27,7 +27,7 @@
       "parentTrail": 1,
       "childTrails": [],
       "endingPoints": [1, 2],
-      "isEnd": true
+      "isEnd": false
     },
     {
       "runID": 4,
@@ -67,7 +67,9 @@
       "parentTrail": null,
       "childTrails": [],
       "endingPoints": [1, 2],
-      "isEnd": true
+      "isEnd": true,
+      "connectsTo": [10],
+      "connectsFrom": [null]
     },
     {
       "runID": 8,
