@@ -8,6 +8,11 @@ node_modules/
 logs/
 *.log
 
+#ignoring all JSONs
+blueMountainTrails.json
+chairlifts.json
+POIs.json
+
 # Optional cache and build directories
 .cache/
 dist/
