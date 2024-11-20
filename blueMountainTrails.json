@@ -18,8 +18,8 @@
       "parentTrail": 1,
       "childTrails": [],
       "endingPoints": [1, 2],
-      "isEnd": false,
       "mergesTo": [3]
+      "isEnd": false
     },
     {
       "runID": 3,
@@ -29,8 +29,9 @@
       "parentTrail": 1,
       "childTrails": [],
       "endingPoints": [1, 2],
-      "isEnd": false,
+
       "mergesTo": [1]
+      "isEnd": false
     },
     {
       "runID": 4,
