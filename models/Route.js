@@ -29,7 +29,11 @@ const routeSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    waypoints: [waypointSchema],
+    trails: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'BlueMountainTrail',
+        required: true,
+    }], // Array of trail IDs representing the route
     createdAt: {
         type: Date,
         default: Date.now,
