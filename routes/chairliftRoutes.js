@@ -24,4 +24,25 @@ router.post('/populate-chairlifts', async (req, res) => {
     }
 });
 
+router.get('/lift-names', async (req, res) => {
+    try {
+        // Fetch all chairlifts, returning only the 'liftName' field
+        const lifts = await Chairlift.find({}, 'liftName'); // This queries the 'liftName' field
+
+        // If no lifts are found, return an empty array
+        if (lifts.length === 0) {
+            return res.status(404).json({ message: 'No lifts found' });
+        }
+
+        // Respond with the lift names
+        res.status(200).json({
+            message: 'Lift names retrieved successfully',
+            lifts: lifts.map(lift => lift.liftName) // Extract lift names from the result
+        });
+    } catch (error) {
+        console.error('Error retrieving lift names:', error);
+        res.status(500).json({ message: 'Error retrieving lift names', error });
+    }
+});
+
 module.exports = router;
