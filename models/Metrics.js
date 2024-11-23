@@ -7,7 +7,11 @@ const metricsSchema = new mongoose.Schema({
         required: true,
     },
     sessionData: {
-        speed: {
+        aveSpeed: {
+            type: Number,
+            required: true,
+        },
+        topSpeed: {
             type: Number,
             required: true,
         },
@@ -19,9 +23,9 @@ const metricsSchema = new mongoose.Schema({
             type: Number,
             required: true,
         },
-        timestamp: {
-            type: Date,
-            default: Date.now,
+        duration: {
+            type: Number,
+            required: true,
         },
     },
     createdAt: {
