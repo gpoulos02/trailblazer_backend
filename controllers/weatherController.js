@@ -21,7 +21,7 @@ exports.getWeatherData = async (req, res) => {
             }
         });
 
-        console.log("Debug: Current weather response data:", currentWeatherResponse.data);
+        //console.log("Debug: Current weather response data:", currentWeatherResponse.data);
 
         // Fetch forecast
         const forecastResponse = await axios.get(`https://api.openweathermap.org/data/2.5/forecast`, {
@@ -33,7 +33,7 @@ exports.getWeatherData = async (req, res) => {
             }
         });
 
-        console.log("Debug: Forecast response data:", forecastResponse.data);
+        //console.log("Debug: Forecast response data:", forecastResponse.data);
 
         // Parse relevant data
         const weatherInfo = {
@@ -50,7 +50,7 @@ exports.getWeatherData = async (req, res) => {
             }))
         };
 
-        console.log("Debug: Final weather info:", weatherInfo);
+        //console.log("Debug: Final weather info:", weatherInfo);
         res.json(weatherInfo);
     } catch (error) {
         console.error("Debug: Error fetching weather data:", error);
