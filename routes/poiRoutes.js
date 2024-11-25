@@ -28,7 +28,7 @@ router.post('/populate', async (req, res) => {
 router.get('/get-pois', async (req, res) => {
     try {
         const pois = await PointOfInterest.find();
-        console.log('Fetched POIs:', pois); // Log POIs being sent to the client
+        //console.log('Fetched POIs:', pois); // Log POIs being sent to the client
         res.status(200).json(pois);
     } catch (error) {
         console.error('Error fetching POIs:', error); // Log error
