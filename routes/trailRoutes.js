@@ -38,5 +38,18 @@ router.get('/trails-by-lift/:liftID', async (req, res) => {
     }
 });
 
+router.get('/unique-difficulties', async (req, res) => {
+    try {
+        console.log('Unique difficulties endpoint hit'); // Log for debugging
+        const trails = await BlueMountainTrail.find();
+        const uniqueDifficulties = [...new Set(trails.map(trail => trail.difficulty))];
+        res.status(200).json(uniqueDifficulties);
+    } catch (error) {
+        console.error('Error querying unique difficulties:', error);
+        res.status(500).json({ message: 'Error querying unique difficulties', error });
+    }
+});
+
+
 
 module.exports = router;
