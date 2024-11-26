@@ -1,11 +1,12 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid'); // To generate UUID
 
 // Register a new user
 exports.register = async (req, res) => {
     try {
-        const { username, password, firstName, lastName, email, userID } = req.body;
+        const { username, password, firstName, lastName, email } = req.body;
 
         // Check if the username or email already exists
         let user = await User.findOne({ $or: [{ username }, { email }] });
@@ -18,8 +19,18 @@ exports.register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         console.log('Hashed Password:', hashedPassword);
 
-        // Create new user
-        user = new User({ username, password: hashedPassword, firstName, lastName, email, userID });
+        // Generate a new unique userID
+        const userID = uuidv4();  // Generate a unique userID using UUID v4
+
+        // Create new user with the generated userID
+        user = new User({
+            username,
+            password: hashedPassword,
+            firstName,
+            lastName,
+            email,
+            userID // Use the generated userID
+        });
 
         const savedUser = await user.save();
         console.log('User saved:', savedUser);
