@@ -23,6 +23,7 @@ const weatherRoutes = require('./routes/weatherRoutes');
 const poiRoutes = require('./routes/poiRoutes');
 const trailRoutes = require('./routes/trailRoutes');
 const chairliftRoutes = require('./routes/chairliftRoutes');
+const mapRoutes = require('./routes/mapRoutes');
 
 
 // Define routes
@@ -33,6 +34,7 @@ app.use('/api/weather', weatherRoutes);    // Weather data routes
 app.use('/api/pois', poiRoutes);            // Add POI routes
 app.use('/api/trails', trailRoutes);       // Add trail routes
 app.use('/api/chairlifts', chairliftRoutes); // Add chairlift routes
+app.use('/api/map', mapRoutes); 
 
 // Root route
 app.get('/', (req, res) => {
@@ -79,3 +81,4 @@ const PORT = process.env.PORT || 5001;
 https.createServer(options, app).listen(PORT, 'TrailBlazer33', () => {
     console.log(`HTTPS Server running on https://TrailBlazer33:${PORT}`);
 });
+
