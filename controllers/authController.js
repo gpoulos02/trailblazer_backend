@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid'); // To generate UUID
 // Register a new user
 exports.register = async (req, res) => {
     try {
+        console.log("in register")
         const { username, password, firstName, lastName, email } = req.body;
 
         // Check if the username or email already exists
