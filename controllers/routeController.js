@@ -128,7 +128,7 @@ exports.saveRoute = async (req, res) => {
         }
 
         const route = new Route({
-            user: req.user.userId, // assumes user ID is stored in req.user by auth middleware
+            user: req.user.userID, // assumes user ID is stored in req.user by auth middleware
             name,
             trails,
         });
@@ -144,7 +144,7 @@ exports.saveRoute = async (req, res) => {
 // Load all saved routes for the user
 exports.getUserRoutes = async (req, res) => {
     try {
-        const routes = await Route.find({ user: req.user.userId }).populate('trails');
+        const routes = await Route.find({ user: req.user.userID }).populate('trails');
         if (!routes.length) {
             return res.status(404).json({ message: "No saved routes found." });
         }

@@ -16,7 +16,7 @@ exports.saveSession = async (req, res) => {
         }
 
         const metrics = new Metrics({
-            user: req.user.userId,
+            user: req.user.userID,
             sessionData,
         });
 
@@ -31,7 +31,7 @@ exports.saveSession = async (req, res) => {
 exports.getSessionDates = async (req, res) => {
     try {
         // Fetch only session dates 
-        const sessions = await Metrics.find({ user: req.user.userId })
+        const sessions = await Metrics.find({ user: req.user.userID })
             .sort({ createdAt: -1 }) // Sort by most recent
             .select('createdAt') // 
             .exec();
@@ -153,4 +153,4 @@ exports.getMetricOverview = async (req, res) => {
 };
 
 
-
+module.exports = exports;
