@@ -15,8 +15,14 @@ exports.saveSession = async (req, res) => {
             return res.status(400).json({ message: 'All session data fields are required' });
         }
 
+        const userID = req.user.userID;
+
+        if (!userID) {
+            return res.status(400).json({ message: 'User not authenticated or userID missing' });
+        }
+
         const metrics = new Metrics({
-            user: req.user.userID,
+            userID: userID,
             sessionData,
         });
 

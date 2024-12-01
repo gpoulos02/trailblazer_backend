@@ -45,7 +45,6 @@ exports.register = async (req, res) => {
 };
 
 
-// Log in an existing user
 exports.login = async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -58,11 +57,16 @@ exports.login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-        // Create JWT token
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        // Create JWT token with userId (MongoDB _id) and userID (UUID)
+        const token = jwt.sign(
+            { userId: user._id, userID: user.userID }, // Include both IDs
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
         res.json({ token });
     } catch (error) {
+        console.error('Error during login:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
-
