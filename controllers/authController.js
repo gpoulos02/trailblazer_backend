@@ -48,14 +48,22 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         const { username, password } = req.body;
+        console.log('Login attempt for user:', username);
 
         // Find user by username
         const user = await User.findOne({ username });
-        if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+        if (!user) {
+            console.log('User not found:', username);
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
 
         // Check password
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+        if (!isMatch) {
+            console.log('Incorrect password', password);
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
+
 
         // Create JWT token with userId (MongoDB _id) and userID (UUID)
         const token = jwt.sign(
@@ -65,6 +73,7 @@ exports.login = async (req, res) => {
         );
 
         res.json({ token });
+        //console.log(token);
     } catch (error) {
         console.error('Error during login:', error);
         res.status(500).json({ message: 'Server error' });
