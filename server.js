@@ -3,6 +3,7 @@ const https = require('https');
 const express = require('express');
 const connectDB = require('./config/db');
 require('dotenv').config();
+const cors = require('cors');
 
 
 // Connect to MongoDB
@@ -11,6 +12,9 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Initialize Express app
 const app = express();
+
+app.use(cors());
+
 
 // Middleware
 app.use(express.json());

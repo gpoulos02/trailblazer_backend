@@ -2,6 +2,8 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid'); // To generate UUID
+const InvalidatedToken = require('../models/InvalidatedToken');
+
 
 // Register a new user
 exports.register = async (req, res) => {
@@ -77,5 +79,54 @@ exports.login = async (req, res) => {
     } catch (error) {
         console.error('Error during login:', error);
         res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.logout = async (req, res) => {
+    try {
+        const token = req.header('Authorization')?.replace('Bearer ', '');
+        if (!token) {
+            return res.status(400).json({ message: 'No token provided' });
+        }
+
+        // Decode the token to get its expiration date
+        const decoded = jwt.decode(token);
+        if (!decoded || !decoded.exp) {
+            return res.status(400).json({ message: 'Invalid token' });
+        }
+
+        const expirationDate = new Date(decoded.exp * 1000);
+
+        // Save invalidated token to the database
+        const invalidatedToken = new InvalidatedToken({
+            token,
+            expiresAt: expirationDate,
+        });
+
+        await invalidatedToken.save();
+        res.status(200).json({ message: 'Successfully logged out' });
+    } catch (error) {
+        console.error('Error during logout:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+//DOESN'T WORK YET
+exports.getUserFullName = async (req, res) => {
+    console.log("Request received for user:", req.params.userID); // Debugging log
+    const { userID } = req.params;
+
+    try {
+        const user = await User.findOne({ userID: userID });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        return res.status(200).json({
+            firstName: user.firstName,
+            lastName: user.lastName,
+        });
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        return res.status(500).json({ message: 'Internal server error' });
     }
 };
