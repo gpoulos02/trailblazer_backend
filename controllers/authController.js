@@ -4,11 +4,10 @@ const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid'); // To generate UUID
 const InvalidatedToken = require('../models/InvalidatedToken');
 
-
 // Register a new user
 exports.register = async (req, res) => {
     try {
-        console.log("in register")
+        console.log("in register");
         const { username, password, firstName, lastName, email } = req.body;
 
         // Check if the username or email already exists
@@ -46,7 +45,6 @@ exports.register = async (req, res) => {
     }
 };
 
-
 exports.login = async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -65,7 +63,6 @@ exports.login = async (req, res) => {
             console.log('Incorrect password', password);
             return res.status(400).json({ message: 'Invalid credentials' });
         }
-
 
         // Create JWT token with userId (MongoDB _id) and userID (UUID)
         const token = jwt.sign(
@@ -111,7 +108,7 @@ exports.logout = async (req, res) => {
     }
 };
 
-//DOESN'T WORK YET
+// DOESN'T WORK YET
 exports.getUserFullName = async (req, res) => {
     console.log("Request received for user:", req.params.userID); // Debugging log
     const { userID } = req.params;

@@ -24,7 +24,7 @@ module.exports = async (req, res, next) => {
 
         // Attach both userId and userID to req.user
         req.user = {
-            id: decoded.userId,   // MongoDB ObjectID
+            // id: decoded.userId,   // MongoDB ObjectID
             userID: decoded.userID, // UUID
         };
 
