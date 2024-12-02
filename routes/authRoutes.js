@@ -13,5 +13,7 @@ router.post('/logout', authController.logout);
 //doesn't work idk why 
 router.get('/user/:userID', authController.getUserFullName);
 
+router.put('/profile', authenticate, updateUserProfile);
+
 
 module.exports = router;

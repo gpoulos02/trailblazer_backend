@@ -127,3 +127,46 @@ exports.getUserFullName = async (req, res) => {
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+// Update user profile (first name, last name, and username)
+exports.updateUserProfile = async (req, res) => {
+    const { userId } = req.user; // Assuming user authentication middleware adds `req.user`
+    const { firstName, lastName, username } = req.body;
+
+    try {
+        // Find the user by their MongoDB _id
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Check if the username is being updated and is already taken by another user
+        if (username && username !== user.username) {
+            const existingUser = await User.findOne({ username });
+            if (existingUser) {
+                return res.status(400).json({ message: 'Username already taken' });
+            }
+        }
+
+        // Update the fields if provided in the request body
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        if (username) user.username = username;
+
+        // Save the updated user details
+        const updatedUser = await user.save();
+
+        res.status(200).json({
+            message: 'User profile updated successfully',
+            user: {
+                firstName: updatedUser.firstName,
+                lastName: updatedUser.lastName,
+                username: updatedUser.username,
+            },
+        });
+    } catch (error) {
+        console.error('Error updating user profile:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
