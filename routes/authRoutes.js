@@ -12,8 +12,6 @@ router.post('/login', authController.login);
 // GET /api/auth/profile - Fetch user profile (protected route)
 router.get('/profile', authMiddleware, authController.getProfile);
 
-router.put('/profile', authenticate, updateUserProfile);
-
 // POST /api/auth/logout - Log out user (protected route)
 router.post('/logout', authMiddleware, authController.logout);
 
