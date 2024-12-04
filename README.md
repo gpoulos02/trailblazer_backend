@@ -1,3 +1,3 @@
-TRAILBLAZER BACKEND
-using MongoDB
--need to make .env file to connect to backend and login using jsonwebtoken
+# TRAILBLAZER BACKEND
+
+Please reference the 'main' branch for all of our current, up to date code.
