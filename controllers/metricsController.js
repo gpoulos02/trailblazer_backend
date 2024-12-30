@@ -2,17 +2,17 @@ const Metrics = require('../models/Metrics');
 
 exports.saveSession = async (req, res) => {
     try {
-        const { sessionData } = req.body;
+        const { sessionData, runID } = req.body;
 
         // Validate session data
         if (
-            !sessionData.aveSpeed ||
             !sessionData.topSpeed ||
             !sessionData.distance ||
             !sessionData.elevationGain ||
-            !sessionData.duration
+            !sessionData.duration ||
+            !runID // Ensure runID is provided
         ) {
-            return res.status(400).json({ message: 'All session data fields are required' });
+            return res.status(400).json({ message: 'All session data fields and runID are required' });
         }
 
         const userID = req.user.userID;
@@ -22,7 +22,8 @@ exports.saveSession = async (req, res) => {
         }
 
         const metrics = new Metrics({
-            userID: userID,
+            userID,
+            runID,
             sessionData,
         });
 
@@ -36,46 +37,42 @@ exports.saveSession = async (req, res) => {
 
 exports.getSessionDates = async (req, res) => {
     try {
-        // Fetch only session dates 
-        const sessions = await Metrics.find({ user: req.user.userID })
-            .sort({ createdAt: -1 }) // Sort by most recent
-            .select('createdAt') // 
+        const sessions = await Metrics.find({ userID: req.user.userID })
+            .sort({ createdAt: -1 })
+            .select('createdAt runID') // Include runID
             .exec();
 
-        // Format the response to only include dates
         const sessionDates = sessions.map(session => ({
-            id: session._id, // Include the session ID for frontend use
+            id: session._id,
             date: session.createdAt,
+            runID: session.runID, // Include runID in response
         }));
 
         res.json(sessionDates);
     } catch (error) {
-        console.error(error); 
+        console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };
 
+// Update for `getSessionById`
 exports.getSessionById = async (req, res) => {
     try {
         const { id } = req.params;
+        const session = await Metrics.findById(id).select('-__v'); // Exclude version key
 
-        // Fetch the session by ID
-        const session = await Metrics.findById(id);
-
-        // Check if the session exists
-        if (!session) {
+        if (!session || session.userID !== req.user.userID) {
             return res.status(404).json({ message: 'Session not found' });
         }
 
-        // User Authentication
-        if (session.user.toString() !== req.user.userId) {
-            return res.status(403).json({ message: 'Unauthorized access' });
-        }
-
-        // Return the session data
-        res.json(session);
+        res.json({
+            id: session._id,
+            runID: session.runID, // Include runID
+            sessionData: session.sessionData,
+            createdAt: session.createdAt,
+        });
     } catch (error) {
-        console.error(error); 
+        console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -111,49 +108,106 @@ exports.deleteSession = async (req, res) => {
 //gets an overview of all metrics over a given period
 exports.getMetricOverview = async (req, res) => {
     try {
-        const { startDate, endDate } = req.query;
+        const metrics = await Metrics.find({ userID: req.user.userID });
 
-        // Build date filter
-        const filter = { user: req.user.userId };
-        if (startDate || endDate) {
-            filter.createdAt = {};
-            if (startDate) filter.createdAt.$gte = new Date(startDate);
-            if (endDate) filter.createdAt.$lte = new Date(endDate);
+        if (!metrics.length) {
+            return res.status(404).json({ message: 'No metrics found' });
         }
 
-        // Fetch sessions within the time frame
-        const sessions = await Metrics.find(filter).select('sessionData').exec();
-
-        if (!sessions.length) {
-            return res.status(404).json({ message: 'No sessions found for the specified time frame' });
-        }
-
-        // Calculate the aggregate metrics
-        const totalSessions = sessions.length;
-        const totalDistance = sessions.reduce((sum, session) => sum + session.sessionData.distance, 0);
-        const totalElevation = sessions.reduce((sum, session) => sum + session.sessionData.elevationGain, 0);
-        const averageSpeed = sessions.reduce((sum, session) => sum + session.sessionData.aveSpeed, 0) / totalSessions;
-        const averageDistance = totalDistance / totalSessions;
-        const averageElevation = totalElevation / totalSessions;
-        const topSpeed = Math.max(...sessions.map(session => session.sessionData.topSpeed));
-        const longestDistance = Math.max(...sessions.map(session => session.sessionData.distance));
-        const mostElevation = Math.max(...sessions.map(session => session.sessionData.elevationGain));
-
-        // Build and send the response
-        const overview = {
-            averageSpeed,
-            topSpeed,
-            averageDistance,
-            longestDistance,
-            totalDistance,
-            averageElevation,
-            mostElevation,
-            totalElevation,
-        };
+        const overview = metrics.map(metric => ({
+            id: metric._id,
+            runID: metric.runID, // Include runID
+            topSpeed: metric.sessionData.topSpeed,
+            distance: metric.sessionData.distance,
+            elevationGain: metric.sessionData.elevationGain,
+            duration: metric.sessionData.duration,
+            createdAt: metric.createdAt,
+        }));
 
         res.json(overview);
     } catch (error) {
-        console.error(error); // Log errors for debugging
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.getRunsByRunID = async (req, res) => {
+    try {
+        const { runID } = req.params;
+        const userID = req.user.userID;  // Get userID from the JWT
+
+        // Fetch the runs only for the logged-in user
+        const runs = await Metrics.find({ runID, userID }).exec();
+
+        if (!runs.length) {
+            return res.status(404).json({ message: 'No runs found for this user with the given runID' });
+        }
+
+        res.json(runs);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.getRunsByDate = async (req, res) => {
+    try {
+        const { date } = req.query;
+        const userID = req.user.userID;  // Get userID from the JWT
+
+        // Fetch the runs for the logged-in user by the given date
+        const runs = await Metrics.find({
+            userID,
+            createdAt: {
+                $gte: new Date(date + 'T00:00:00Z'),
+                $lt: new Date(date + 'T23:59:59Z')
+            }
+        }).exec();
+
+        if (!runs.length) {
+            return res.status(404).json({ message: 'No runs found for this user on the given date' });
+        }
+
+        res.json(runs);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.getRunsSortedBySpeed = async (req, res) => {
+    try {
+        const userID = req.user.userID;  // Get userID from the JWT
+
+        // Fetch the runs for the logged-in user and sort them by topSpeed
+        const runs = await Metrics.find({ userID }).sort({ 'sessionData.topSpeed': -1 }).exec();
+
+        if (!runs.length) {
+            return res.status(404).json({ message: 'No runs found for this user' });
+        }
+
+        res.json(runs);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Get all performance metrics for the logged-in user
+exports.getAllMetrics = async (req, res) => {
+    try {
+        const userID = req.user.userID;  // Get userID from the JWT
+
+        // Fetch all performance metrics for the logged-in user
+        const metrics = await Metrics.find({ userID }).exec();
+
+        if (!metrics.length) {
+            return res.status(404).json({ message: 'No metrics found for this user' });
+        }
+
+        res.json(metrics);
+    } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };

@@ -5,8 +5,11 @@ const metricsSchema = new mongoose.Schema({
         type: String, // Using userID as a string
         required: true,
     },
+    runID: {
+        type: String, // Run ID of the ski trail
+        required: true,
+    },
     sessionData: {
-        aveSpeed: { type: Number, required: true },
         topSpeed: { type: Number, required: true },
         distance: { type: Number, required: true },
         elevationGain: { type: Number, required: true },
@@ -18,4 +21,5 @@ const metricsSchema = new mongoose.Schema({
     },
 });
 
-module.exports = mongoose.model('Metrics', metricsSchema);
+const Metrics = mongoose.model('Metrics', metricsSchema);
+module.exports = Metrics;
