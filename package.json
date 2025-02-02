@@ -33,4 +33,7 @@
     "url": "git+https://github.com/gpoulos02/trailblazer_backend.git"
   },
   "bugs": {
-    "url": "https://github.com/gpoulos02/trailblazer_backend/is
+    "url": "https://github.com/gpoulos02/trailblazer_backend/issues"
+  },
+  "homepage": "https://github.com/gpoulos02/trailblazer_backend#readme"
+}

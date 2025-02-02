@@ -18,4 +18,11 @@ router.post('/logout', authMiddleware, authController.logout);
 // PUT /api/auth/update-profile - Update user profile (protected route)
 router.put('/update-profile', authMiddleware, authController.updateUserProfile);
 
-// POST /api/auth/upload-
+// POST /api/auth/upload-profile-picture - Upload profile picture (protected route)
+router.post('/upload-profile-picture', authMiddleware, authController.updateProfilePicture);
+
+// GET /api/auth/profile-picture/:fileId - Fetch the user's profile picture from MongoDB
+router.get('/profile-picture/:fileId', authMiddleware, authController.getProfilePicture);
+
+
+module.exports = router;
