@@ -3,6 +3,27 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid'); // To generate UUID
 const InvalidatedToken = require('../models/InvalidatedToken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const sharp = require('sharp');
+const gridfsStream = require('gridfs-stream');
+
+const conn = mongoose.createConnection(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Set up multer to store files directly in MongoDB (using GridFS)
+const storage = new GridFsStorage({
+    url: process.env.MONGO_URI,  // MongoDB connection string (make sure to set this in your .env)
+    file: (req, file) => {
+        return {
+            bucketName: 'profile_pictures',  // Name of the GridFS bucket
+            filename: `${req.user.userID}-${Date.now()}${file.originalname}`
+        };
+    }
+});
+
+const upload = multer({ storage }).single('profilePicture');
+
 
 // Register a new user
 exports.register = async (req, res) => {
@@ -159,6 +180,59 @@ exports.updateUserProfile = async (req, res) => {
         console.error('Error updating user profile:', error);
         res.status(500).json({ message: 'Server error' });
     }
+};
+
+// Update profile picture in the user profile (storing in MongoDB)
+exports.updateProfilePicture = async (req, res) => {
+    upload(req, res, async (err) => {
+        if (err) {
+            console.error('Error uploading file:', err);
+            return res.status(400).json({ message: err.message });
+        }
+
+        const fileId = req.file.id; // File ID stored in MongoDB
+
+        try {
+            // Update the user's profile picture field in the database with the file ID
+            const user = await User.findOne({ userID: req.user.userID });
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            user.profilePicture = fileId;  // Store the GridFS file ID
+            await user.save();
+
+            res.status(200).json({
+                message: 'Profile picture updated successfully',
+                profilePicture: fileId,
+            });
+        } catch (error) {
+            console.error('Error updating profile picture:', error);
+            res.status(500).json({ message: 'Server error' });
+        }
+    });
+};
+
+// Fetch the profile picture from MongoDB using the file ID
+exports.getProfilePicture = async (req, res) => {
+    const fileId = req.params.fileId; // The file ID is passed in the URL
+
+    conn.once('open', () => {
+        const gfs = gridfsStream(conn.db, mongoose.mongo);
+        gfs.collection('profile_pictures'); // The GridFS bucket for storing profile pictures
+
+        // Find the file by its ID in the database
+        gfs.files.findOne({ _id: mongoose.Types.ObjectId(fileId) }, (err, file) => {
+            if (err || !file) {
+                return res.status(404).json({ message: 'File not found' });
+            }
+
+            // Create a read stream and send the file as a response
+            const readStream = gfs.createReadStream(file.filename);
+            res.set('Content-Type', file.contentType); // Set the correct content type
+            readStream.pipe(res); // Pipe the file stream to the response
+        });
+    });
 };
 
 
