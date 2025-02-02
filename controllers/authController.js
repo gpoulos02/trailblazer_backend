@@ -121,7 +121,8 @@ exports.getProfile = async (req, res) => {
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
-            userID: user.userID
+            userID: user.userID,
+            bio: user.bio,
         });
     } catch (error) {
         console.error('Error fetching profile:', error);
@@ -131,21 +132,19 @@ exports.getProfile = async (req, res) => {
 
 // Update user profile (first name, last name, and username)
 exports.updateUserProfile = async (req, res) => {
-    const { userID } = req.user; // Assuming user authentication middleware adds `req.user`
-    const { firstName, lastName } = req.body;
+    const { userID } = req.user;
+    const { firstName, lastName, bio } = req.body;
 
     try {
-        // Find the user by their unique userID
         const user = await User.findOne({ userID });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Update the fields if provided in the request body
         if (firstName) user.firstName = firstName;
         if (lastName) user.lastName = lastName;
+        if (bio !== undefined) user.bio = bio;
 
-        // Save the updated user details
         const updatedUser = await user.save();
 
         res.status(200).json({
@@ -153,6 +152,7 @@ exports.updateUserProfile = async (req, res) => {
             user: {
                 firstName: updatedUser.firstName,
                 lastName: updatedUser.lastName,
+                bio: updatedUser.bio,
             },
         });
     } catch (error) {
@@ -160,5 +160,3 @@ exports.updateUserProfile = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-
-
