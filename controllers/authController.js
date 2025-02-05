@@ -67,4 +67,138 @@ exports.login = async (req, res) => {
 };
 
 //logout
+exports.logout = async (req, res) => {
+    try {
+        const token = req.header('Authorization')?.replace('Bearer ', '');
+        if (!token) {
+            return res.status(400).json({ message: 'No token provided' });
+        }
 
+        // Decode the token to get its expiration date
+        const decoded = jwt.decode(token);
+        if (!decoded || !decoded.exp) {
+            return res.status(400).json({ message: 'Invalid token' });
+        }
+
+        const expirationDate = new Date(decoded.exp * 1000);
+
+        // Save invalidated token to the database
+        const invalidatedToken = new InvalidatedToken({
+            token,
+            expiresAt: expirationDate,
+        });
+
+        await invalidatedToken.save();
+        res.status(200).json({ message: 'Successfully logged out' });
+    } catch (error) {
+        console.error('Error during logout:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.getProfile = async (req, res) => {
+    try {
+        console.log('Received userID from middleware:', req.user.userID);
+        const user = await User.findOne({ userID: req.user.userID }).select('-password');
+        if (!user) {
+            console.error('User not found for userID:', req.user.userID);
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        res.json({
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            userID: user.userID,
+            bio: user.bio,
+        });
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Update user profile (first name, last name, and username)
+exports.updateUserProfile = async (req, res) => {
+    const { userID } = req.user;
+    const { firstName, lastName, bio } = req.body;
+
+    try {
+        const user = await User.findOne({ userID });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        if (bio !== undefined) user.bio = bio;
+
+        const updatedUser = await user.save();
+
+        res.status(200).json({
+            message: 'User profile updated successfully',
+            user: {
+                firstName: updatedUser.firstName,
+                lastName: updatedUser.lastName,
+                bio: updatedUser.bio,
+            },
+        });
+    } catch (error) {
+        console.error('Error updating user profile:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+// Update profile picture in the user profile (storing in MongoDB)
+exports.updateProfilePicture = async (req, res) => {
+    upload(req, res, async (err) => {
+        if (err) {
+            console.error('Error uploading file:', err);
+            return res.status(400).json({ message: err.message });
+        }
+
+        const fileId = req.file.id; // File ID stored in MongoDB
+
+        try {
+            // Update the user's profile picture field in the database with the file ID
+            const user = await User.findOne({ userID: req.user.userID });
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            user.profilePicture = fileId;  // Store the GridFS file ID
+            await user.save();
+
+            res.status(200).json({
+                message: 'Profile picture updated successfully',
+                profilePicture: fileId,
+            });
+        } catch (error) {
+            console.error('Error updating profile picture:', error);
+            res.status(500).json({ message: 'Server error' });
+        }
+    });
+};
+
+// Fetch the profile picture from MongoDB using the file ID
+exports.getProfilePicture = async (req, res) => {
+    const fileId = req.params.fileId; // The file ID is passed in the URL
+
+    conn.once('open', () => {
+        const gfs = gridfsStream(conn.db, mongoose.mongo);
+        gfs.collection('profile_pictures'); // The GridFS bucket for storing profile pictures
+
+        // Find the file by its ID in the database
+        gfs.files.findOne({ _id: mongoose.Types.ObjectId(fileId) }, (err, file) => {
+            if (err || !file) {
+                return res.status(404).json({ message: 'File not found' });
+            }
+
+            // Create a read stream and send the file as a response
+            const readStream = gfs.createReadStream(file.filename);
+            res.set('Content-Type', file.contentType); // Set the correct content type
+            readStream.pipe(res); // Pipe the file stream to the response
+        });
+    });
+};
