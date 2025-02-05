@@ -28,6 +28,9 @@ const poiRoutes = require('./routes/poiRoutes');
 const trailRoutes = require('./routes/trailRoutes');
 const chairliftRoutes = require('./routes/chairliftRoutes');
 const mapRoutes = require('./routes/mapRoutes');
+const postRoutes = require('./routes/postRoutes');
+const friendRoutes = require('./routes/friendRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 
 // Define routes
@@ -39,6 +42,10 @@ app.use('/api/pois', poiRoutes);            // Add POI routes
 app.use('/api/trails', trailRoutes);       // Add trail routes
 app.use('/api/chairlifts', chairliftRoutes); // Add chairlift routes
 app.use('/api/map', mapRoutes); 
+app.use('/api/posts', postRoutes);
+app.use('/api/friends', friendRoutes);
+app.use('/api/notifications', notificationRoutes);
+
 
 // Root route
 app.get('/', (req, res) => {
