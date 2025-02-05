@@ -8,6 +8,10 @@ const path = require('path');
 const fs = require('fs');
 const sharp = require('sharp');
 const gridfsStream = require('gridfs-stream');
+const mongoose = require('mongoose');
+const { GridFsStorage } = require('multer-gridfs-storage');
+
+
 
 const conn = mongoose.createConnection(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
