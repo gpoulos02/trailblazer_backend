@@ -8,12 +8,20 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['friend_request', 'post_like', 'comment', 'system_alert'], // Expand as needed
+        enum: ['friend_request', 'friend_accept', 'post_like', 'comment', 'direct_message', 'system_alert'], 
         required: true,
     },
     message: {
-        type: String,
+        type: String, // For general notifications
         required: true,
+    },
+    title: {
+        type: String, // Only used for `direct_message` and `system_alert`
+        default: null,
+    },
+    body: {
+        type: String, // Only used for `direct_message` and `system_alert`
+        default: null,
     },
     read: {
         type: Boolean,
