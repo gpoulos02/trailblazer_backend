@@ -2,11 +2,37 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid'); // To generate UUID
+const InvalidatedToken = require('../models/InvalidatedToken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const sharp = require('sharp');
+const gridfsStream = require('gridfs-stream');
+const mongoose = require('mongoose');
+const { GridFsStorage } = require('multer-gridfs-storage');
+
+
+
+const conn = mongoose.createConnection(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Set up multer to store files directly in MongoDB (using GridFS)
+const storage = new GridFsStorage({
+    url: process.env.MONGO_URI,  // MongoDB connection string (make sure to set this in your .env)
+    file: (req, file) => {
+        return {
+            bucketName: 'profile_pictures',  // Name of the GridFS bucket
+            filename: `${req.user.userID}-${Date.now()}${file.originalname}`
+        };
+    }
+});
+
+const upload = multer({ storage }).single('profilePicture');
+
 
 // Register a new user
 exports.register = async (req, res) => {
     try {
-        console.log("in register")
+        console.log("in register");
         const { username, password, firstName, lastName, email } = req.body;
 
         // Check if the username or email already exists
@@ -44,24 +70,36 @@ exports.register = async (req, res) => {
     }
 };
 
-
-// Log in an existing user
 exports.login = async (req, res) => {
     try {
         const { username, password } = req.body;
+        console.log('Login attempt for user:', username);
 
         // Find user by username
         const user = await User.findOne({ username });
-        if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+        if (!user) {
+            console.log('User not found:', username);
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
 
         // Check password
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+        if (!isMatch) {
+            console.log('Incorrect password', password);
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
 
-        // Create JWT token
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        // Create JWT token with userId (MongoDB _id) and userID (UUID)
+        const token = jwt.sign(
+            { userId: user._id, userID: user.userID }, // Include both IDs
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
         res.json({ token });
+        //console.log(token);
     } catch (error) {
+        console.error('Error during login:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };

@@ -4,15 +4,21 @@ const BlueMountainTrail = require('../models/BlueMountainTrail');
 const Chairlift = require('../models/Chairlift');
 const PointOfInterest = require('../models/PointOfInterest');
 
+
 exports.findRoutes = async (req, res) => {
     try {
         const { chairliftName, maxDifficulty, destination } = req.body;
 
+        console.log("Request received with parameters:", { chairliftName, maxDifficulty, destination });
+
         // Validate mandatory parameters
         if (!chairliftName || !maxDifficulty) {
+            console.error("Validation failed: chairliftName or maxDifficulty missing.");
             return res.status(400).json({ message: "chairliftName and maxDifficulty are required." });
         }
+
         // Find the chairlift by name
+        console.log(`Searching for chairlift with name: ${chairliftName}`);
         const chairlift = await Chairlift.findOne({ liftName: chairliftName }).populate({
             path: 'topTrails',
             model: 'BlueMountainTrail',
@@ -20,9 +26,13 @@ exports.findRoutes = async (req, res) => {
             foreignField: 'runID',
             options: { select: 'runID runName difficulty' }
         });
+
         if (!chairlift || !chairlift.topTrails.length) {
+            console.warn(`No trails found for the given chairlift name: ${chairliftName}`);
             return res.status(404).json({ message: "No trails found for the given chairlift name." });
         }
+
+        console.log(`Chairlift found: ${chairlift.liftName}, Top trails: ${chairlift.topTrails.length}`);
 
         // Difficulty mapping for filtering
         const allowedDifficulties = {
@@ -34,21 +44,26 @@ exports.findRoutes = async (req, res) => {
 
         const validDifficulties = allowedDifficulties[maxDifficulty.toLowerCase()];
         if (!validDifficulties) {
+            console.error(`Invalid maxDifficulty value provided: ${maxDifficulty}`);
             return res.status(400).json({ message: "Invalid maxDifficulty value." });
         }
+
+        console.log(`Valid difficulties based on maxDifficulty (${maxDifficulty}):`, validDifficulties);
 
         const routes = [];
         const visited = new Set();
 
-
         const traverse = async (trailObj, currentPath) => {
             const trailRunID = trailObj.runID;
-        
-            if (visited.has(trailRunID)) return; // Prevent infinite loops
+
+            if (visited.has(trailRunID)) {
+                console.debug(`Skipping already visited trail: ${trailRunID}`);
+                return; // Prevent infinite loops
+            }
             visited.add(trailRunID);
-        
-            console.log('Visiting Trail ID:', trailRunID);
-        
+
+            console.log(`Visiting trail: ${trailRunID}`);
+
             // Find the current trail in the database and populate its relationships
             const trail = await BlueMountainTrail.findOne({ runID: trailRunID })
                 .populate({
@@ -65,42 +80,49 @@ exports.findRoutes = async (req, res) => {
                     foreignField: 'POI_id',
                     options: { select: 'POI_id POI_name type' }
                 });
-        
+
             if (!trail) {
-                console.error(`Trail with runID ${trailRunID} not found.`);
+                console.error(`Trail with runID ${trailRunID} not found in the database.`);
                 return;
             }
-        
-            if (!validDifficulties.includes(trail.difficulty)) return;
-        
+
+            console.log(`Trail found: ${trail.runName}, Difficulty: ${trail.difficulty}`);
+
+            if (!validDifficulties.includes(trail.difficulty)) {
+                console.debug(`Skipping trail due to difficulty filter: ${trail.difficulty}`);
+                return;
+            }
+
             // Add the current trail as a standalone route if it's an end trail
             if (trail.isEnd || (destination && trail.endingPoints.some(point => point.POI_id === destination))) {
+                console.log(`Adding end trail to routes: ${trail.runName}`);
                 routes.push([...currentPath, trail]);
             }
-        
+
             // Recursively traverse child trails
             for (const childTrail of trail.childTrails) {
                 if (childTrail && childTrail.runID) {
                     console.log(`Branching to child trail: ${childTrail.runID}`);
                     await traverse(childTrail, [...currentPath, trail]); // Pass the updated path
                 } else {
-                    console.warn('Invalid childTrail:', childTrail);
+                    console.warn('Invalid childTrail found during traversal:', childTrail);
                 }
             }
         };
-        
-        
+
         // Start traversal from each trail at the chairlift
         for (const trailObj of chairlift.topTrails) {
-            console.log("starting traverse for " + trailObj)
+            console.log(`Starting traversal for trail: ${trailObj.runID}`);
             await traverse(trailObj, []); // Assuming `chairlift.topTrails` contains trail objects
         }
-        
+
         // Respond with the found routes
         if (routes.length === 0) {
+            console.warn("No suitable routes found after traversal.");
             return res.status(404).json({ message: "No suitable routes found." });
         }
-        
+
+        console.log(`Routes found: ${routes.length}`);
         res.json(
             routes.map(route =>
                 route.map(trail => ({
@@ -110,12 +132,12 @@ exports.findRoutes = async (req, res) => {
                 }))
             )
         );
-        
     } catch (error) {
         console.error('Error finding routes:', error);
         res.status(500).json({ message: "Server error." });
     }
 };
+
 
 
 // Save a route
@@ -128,7 +150,7 @@ exports.saveRoute = async (req, res) => {
         }
 
         const route = new Route({
-            user: req.user.userId, // assumes user ID is stored in req.user by auth middleware
+            user: req.user.userID, // assumes user ID is stored in req.user by auth middleware
             name,
             trails,
         });
@@ -144,7 +166,7 @@ exports.saveRoute = async (req, res) => {
 // Load all saved routes for the user
 exports.getUserRoutes = async (req, res) => {
     try {
-        const routes = await Route.find({ user: req.user.userId }).populate('trails');
+        const routes = await Route.find({ user: req.user.userID }).populate('trails');
         if (!routes.length) {
             return res.status(404).json({ message: "No saved routes found." });
         }

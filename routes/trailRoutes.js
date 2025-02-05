@@ -50,6 +50,40 @@ router.get('/unique-difficulties', async (req, res) => {
     }
 });
 
+// Endpoint to get the runName from runID
+router.get('/run-name/:runID', async (req, res) => {
+    try {
+        const { runID } = req.params; // Get the runID from the URL parameter
+        const trail = await BlueMountainTrail.findOne({ runID }); // Query for the trail with the specified runID
+
+        if (!trail) {
+            return res.status(404).json({ message: 'Trail not found' });
+        }
+
+        res.status(200).json({ runName: trail.runName }); // Return the runName
+    } catch (error) {
+        console.error('Error querying runName by runID:', error);
+        res.status(500).json({ message: 'Error querying runName by runID', error });
+    }
+});
+
+// Endpoint to get the runID from runName
+router.get('/run-id/:runName', async (req, res) => {
+    try {
+        const { runName } = req.params; // Get the runName from the URL parameter
+        const trail = await BlueMountainTrail.findOne({ runName }); // Query for the trail with the specified runName
+
+        if (!trail) {
+            return res.status(404).json({ message: 'Trail not found' });
+        }
+
+        res.status(200).json({ runID: trail.runID }); // Return the runID
+    } catch (error) {
+        console.error('Error querying runID by runName:', error);
+        res.status(500).json({ message: 'Error querying runID by runName', error });
+    }
+});
+
 
 
 module.exports = router;

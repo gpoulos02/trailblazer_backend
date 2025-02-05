@@ -28,8 +28,12 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    bio: {   
+        type: String,
+        default: '', 
+    },
     friends: [{
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: 'User'
     }],
     friendRequestsSent: [{

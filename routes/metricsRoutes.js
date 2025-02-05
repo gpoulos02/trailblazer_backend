@@ -9,13 +9,24 @@ router.post('/', authMiddleware, metricsController.saveSession);
 // GET /api/metrics/dates - Get a list of session dates
 router.get('/dates', authMiddleware, metricsController.getSessionDates);
 
+// GET /api/metrics/overview - Get an overview of metrics over a specified period
+router.get('/overview', authMiddleware, metricsController.getMetricOverview);
+
 // GET /api/metrics/:id - Get session data for a specific session
 router.get('/:id', authMiddleware, metricsController.getSessionById);
 
 // DELETE /api/metrics/:id - Delete a specific session
 router.delete('/:id', authMiddleware, metricsController.deleteSession);
 
-// GET /api/metrics/overview - Get an overview of metrics over a specified period
-router.get('/overview', authMiddleware, metricsController.getMetricOverview);
+// get all metrics for specific by runID
+router.get('/runID/:runID', authMiddleware, metricsController.getRunsByRunID);
+
+// get all metrics for specific by date
+router.get('/date', authMiddleware, metricsController.getRunsByDate);
+
+// GET /api/metrics/speed - Get all runs sorted by top speed (fastest to slowest)
+router.get('/speed', authMiddleware, metricsController.getRunsSortedBySpeed);
+
+router.get('/all', authMiddleware, metricsController.getAllMetrics);
 
 module.exports = router;
