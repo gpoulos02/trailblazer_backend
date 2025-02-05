@@ -6,6 +6,9 @@ const friendController = require('../controllers/friendController');
 // Send a friend request
 router.post('/send/:userId', authMiddleware, friendController.sendFriendRequest);
 
+// View pending friend requests
+router.get('/requests', authMiddleware, friendController.viewFriendRequests);
+
 // Accept a friend request
 router.post('/accept/:userId', authMiddleware, friendController.acceptFriendRequest);
 

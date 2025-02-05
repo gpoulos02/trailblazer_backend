@@ -1,5 +1,21 @@
 const User = require('../models/User');
 
+
+// View Friend Requests
+exports.viewFriendRequests = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId).populate('friendRequestsReceived', 'username firstName lastName');
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        res.status(200).json({ friendRequests: user.friendRequestsReceived });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
 // Send a Friend Request
 exports.sendFriendRequest = async (req, res) => {
     try {
