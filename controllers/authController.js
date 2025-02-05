@@ -104,6 +104,7 @@ exports.login = async (req, res) => {
     }
 };
 
+//logout
 exports.logout = async (req, res) => {
     try {
         const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -239,5 +240,3 @@ exports.getProfilePicture = async (req, res) => {
         });
     });
 };
-
-
