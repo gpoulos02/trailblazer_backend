@@ -18,4 +18,7 @@ router.post('/reject/:userId', authMiddleware, friendController.rejectFriendRequ
 // Search for users by username
 router.get('/search', authMiddleware, friendController.searchUsers);
 
+// Unfriend a user
+router.delete('/unfriend/:userId', authMiddleware, friendController.unfriendUser);
+
 module.exports = router;

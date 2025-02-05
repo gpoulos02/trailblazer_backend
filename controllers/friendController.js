@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Fuse = require('fuse.js');
 
 
 // View Friend Requests
@@ -121,7 +122,39 @@ exports.rejectFriendRequest = async (req, res) => {
     }
 };
 
-// Search Users by Username
+// Unfriend a User
+exports.unfriendUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const currentUserId = req.user.userId;
+
+        const currentUser = await User.findById(currentUserId);
+        const otherUser = await User.findById(userId);
+
+        if (!currentUser || !otherUser) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        // Check if they are friends
+        if (!currentUser.friends.includes(userId)) {
+            return res.status(400).json({ message: "You are not friends with this user." });
+        }
+
+        // Remove from each other's friend lists
+        currentUser.friends = currentUser.friends.filter(id => id.toString() !== userId);
+        otherUser.friends = otherUser.friends.filter(id => id.toString() !== currentUserId);
+
+        await currentUser.save();
+        await otherUser.save();
+
+        res.status(200).json({ message: "User has been unfriended." });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+};
+
+// Search Users with Fuzzy Matching
 exports.searchUsers = async (req, res) => {
     try {
         const { query } = req.query;
@@ -130,11 +163,22 @@ exports.searchUsers = async (req, res) => {
             return res.status(400).json({ message: "Search query is required." });
         }
 
-        const users = await User.find({ 
-            username: { $regex: query, $options: "i" } // Case-insensitive search
-        }).select("username firstName lastName _id");
+        // Fetch all users (ideally, this should be optimized with caching in a real-world app)
+        const users = await User.find().select("username firstName lastName _id");
 
-        res.status(200).json(users);
+        // Set up Fuse.js for fuzzy search
+        const fuse = new Fuse(users, {
+            keys: ["username", "firstName", "lastName"], // Fields to search in
+            threshold: 0.3,  // Adjust how "fuzzy" it is (0 = exact match, 1 = very loose)
+            includeScore: true, // Include similarity scores
+        });
+
+        const results = fuse.search(query);
+
+        // Extract matched users
+        const matchedUsers = results.map(result => result.item);
+
+        res.status(200).json(matchedUsers);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server error." });
