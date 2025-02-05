@@ -1,0 +1,126 @@
+const User = require('../models/User');
+
+// Send a Friend Request
+exports.sendFriendRequest = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const senderId = req.user.userId;
+
+        if (senderId === userId) {
+            return res.status(400).json({ message: "You cannot send a friend request to yourself." });
+        }
+
+        const sender = await User.findById(senderId);
+        const receiver = await User.findById(userId);
+
+        if (!receiver) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        if (sender.friends.includes(userId) || receiver.friends.includes(senderId)) {
+            return res.status(400).json({ message: "You are already friends." });
+        }
+
+        if (receiver.friendRequestsReceived.includes(senderId)) {
+            return res.status(400).json({ message: "Friend request already sent." });
+        }
+
+        // Update both users' friend request lists
+        sender.friendRequestsSent.push(userId);
+        receiver.friendRequestsReceived.push(senderId);
+
+        await sender.save();
+        await receiver.save();
+
+        res.status(200).json({ message: "Friend request sent." });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+};
+
+// Accept a Friend Request
+exports.acceptFriendRequest = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const receiverId = req.user.userId;
+
+        const receiver = await User.findById(receiverId);
+        const sender = await User.findById(userId);
+
+        if (!receiver || !sender) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        if (!receiver.friendRequestsReceived.includes(userId)) {
+            return res.status(400).json({ message: "No friend request found from this user." });
+        }
+
+        // Add each other as friends
+        receiver.friends.push(userId);
+        sender.friends.push(receiverId);
+
+        // Remove friend request
+        receiver.friendRequestsReceived = receiver.friendRequestsReceived.filter(id => id.toString() !== userId);
+        sender.friendRequestsSent = sender.friendRequestsSent.filter(id => id.toString() !== receiverId);
+
+        await receiver.save();
+        await sender.save();
+
+        res.status(200).json({ message: "Friend request accepted." });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+};
+
+// Reject a Friend Request
+exports.rejectFriendRequest = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const receiverId = req.user.userId;
+
+        const receiver = await User.findById(receiverId);
+        const sender = await User.findById(userId);
+
+        if (!receiver || !sender) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        if (!receiver.friendRequestsReceived.includes(userId)) {
+            return res.status(400).json({ message: "No friend request found from this user." });
+        }
+
+        // Remove friend request
+        receiver.friendRequestsReceived = receiver.friendRequestsReceived.filter(id => id.toString() !== userId);
+        sender.friendRequestsSent = sender.friendRequestsSent.filter(id => id.toString() !== receiverId);
+
+        await receiver.save();
+        await sender.save();
+
+        res.status(200).json({ message: "Friend request rejected." });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+};
+
+// Search Users by Username
+exports.searchUsers = async (req, res) => {
+    try {
+        const { query } = req.query;
+
+        if (!query) {
+            return res.status(400).json({ message: "Search query is required." });
+        }
+
+        const users = await User.find({ 
+            username: { $regex: query, $options: "i" } // Case-insensitive search
+        }).select("username firstName lastName _id");
+
+        res.status(200).json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+};
