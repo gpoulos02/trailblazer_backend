@@ -1,24 +1,20 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User'); // To fetch users for sending notifications
 
-// Send a notification to all users (Admin-related messages)
+// Send a notification to all users (Admin messages)
 exports.sendToAllUsers = async (req, res) => {
     try {
-        const { type, message } = req.body;
+        const { title, body } = req.body;
 
-        if (!type || !message) {
-            return res.status(400).json({ message: "Missing required fields." });
+        if (!title || !body) {
+            return res.status(400).json({ message: "Title and body are required." });
         }
 
-        const users = await User.find({}, '_id'); // Fetch all user IDs
+        const users = await User.find({}, '_id');
 
-        const notifications = users.map(user => ({
-            user: user._id,
-            type,
-            message,
-        }));
-
-        await Notification.insertMany(notifications);
+        for (const user of users) {
+            await sendNotification(user._id, 'system_alert', '', title, body);
+        }
 
         res.status(201).json({ message: "Notification sent to all users successfully" });
     } catch (error) {
@@ -27,56 +23,67 @@ exports.sendToAllUsers = async (req, res) => {
     }
 };
 
-// Send a notification to a single user (Direct messages, Friend Requests)
-exports.sendToUser = async (req, res) => {
+//Send Direct Message
+exports.sendDirectMessage = async (req, res) => {
     try {
-        const { userId, type, message } = req.body;
+        const { recipientId, title, body } = req.body;
+        const senderId = req.user.userId;
 
-        if (!userId || !type || !message) {
-            return res.status(400).json({ message: "Missing required fields." });
+        if (!recipientId || !title || !body) {
+            return res.status(400).json({ message: "Recipient, title, and body are required." });
         }
 
-        const notification = new Notification({
-            user: userId,
-            type,
-            message,
-        });
+        await sendNotification(recipientId, 'direct_message', '', title, body);
 
-        await notification.save();
-        res.status(201).json({ message: "Notification sent successfully", notification });
+        res.status(201).json({ message: "Direct message notification sent!" });
     } catch (error) {
-        console.error('Error sending notification:', error);
+        console.error("Error sending direct message:", error);
         res.status(500).json({ message: "Server error" });
     }
 };
 
-// Send a notification to all friends of the logged-in user (Post-related notifications)
-exports.sendToFriends = async (req, res) => {
+
+// Send a friend request notification
+exports.sendFriendRequestNotification = async (req, res) => {
     try {
-        const { type, message } = req.body;
-        const userId = req.user.userId; // Get logged-in user's ID
+        const { recipientId } = req.body;
+        const senderId = req.user.userId;
 
-        if (!type || !message) {
-            return res.status(400).json({ message: "Missing required fields." });
+        const sender = await User.findById(senderId);
+        const recipient = await User.findById(recipientId);
+
+        if (!recipient) {
+            return res.status(404).json({ message: "User not found." });
         }
 
-        const user = await User.findById(userId).populate('friends', '_id');
+        await sendNotification(recipientId, 'friend_request', sender.username);
 
-        if (!user || !user.friends.length) {
-            return res.status(404).json({ message: "No friends found to notify" });
-        }
-
-        const notifications = user.friends.map(friend => ({
-            user: friend._id,
-            type,
-            message,
-        }));
-
-        await Notification.insertMany(notifications);
-
-        res.status(201).json({ message: "Notification sent to all friends successfully" });
+        res.status(201).json({ message: "Friend request notification sent!" });
     } catch (error) {
-        console.error('Error sending notification to friends:', error);
+        console.error("Error sending friend request notification:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+
+// Send a friend accept notification
+exports.sendFriendAcceptNotification = async (req, res) => {
+    try {
+        const { recipientId } = req.body;
+        const senderId = req.user.userId;
+
+        const sender = await User.findById(senderId);
+        const recipient = await User.findById(recipientId);
+
+        if (!recipient) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        await sendNotification(recipientId, 'friend_accept', sender.username);
+
+        res.status(201).json({ message: "Friend accept notification sent!" });
+    } catch (error) {
+        console.error("Error sending friend accept notification:", error);
         res.status(500).json({ message: "Server error" });
     }
 };

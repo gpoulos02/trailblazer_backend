@@ -2,7 +2,7 @@ const Post = require('../models/Post');
 const Route = require('../models/Route');
 const Metrics = require('../models/Metrics');
 const User = require('../models/User');
-
+const { sendNotification } = require('../utils/notificationUtils');
 
 
 ///////////////////////Creating Posts//////////////////////
@@ -74,10 +74,10 @@ exports.createPerformancePost = async (req, res) => {
 
 //////////////////////////Interacting with Posts//////////////////////////////
 
-// Like a post
+// Like a post 
 exports.likePost = async (req, res) => {
     try {
-        const post = await Post.findById(req.params.postId);
+        const post = await Post.findById(req.params.postId).populate('user', 'username');
         if (!post) return res.status(404).json({ message: 'Post not found' });
 
         if (post.likes.includes(req.user.userId)) {
@@ -86,6 +86,10 @@ exports.likePost = async (req, res) => {
 
         post.likes.push(req.user.userId);
         await post.save();
+
+        // 🚀 **Trigger Post Like Notification**
+        await sendNotification(post.user._id, 'post_like', req.user.username);
+
         res.status(200).json({ message: 'Post liked', post });
     } catch (error) {
         console.error(error);
@@ -93,13 +97,13 @@ exports.likePost = async (req, res) => {
     }
 };
 
-// Comment on a post
+// Comment on a post 
 exports.commentOnPost = async (req, res) => {
     try {
         const { content } = req.body;
         if (!content) return res.status(400).json({ message: 'Comment content is required' });
 
-        const post = await Post.findById(req.params.postId);
+        const post = await Post.findById(req.params.postId).populate('user', 'username');
         if (!post) return res.status(404).json({ message: 'Post not found' });
 
         const comment = {
@@ -110,6 +114,10 @@ exports.commentOnPost = async (req, res) => {
 
         post.comments.push(comment);
         await post.save();
+
+        // 🚀 **Trigger Comment Notification**
+        await sendNotification(post.user._id, 'comment', req.user.username);
+
         res.status(200).json({ message: 'Comment added', post });
     } catch (error) {
         console.error(error);

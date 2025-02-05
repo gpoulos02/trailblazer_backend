@@ -1,8 +1,8 @@
 const User = require('../models/User');
 const Fuse = require('fuse.js');
+const { sendNotification } = require('../utils/notificationUtils');
 
-
-// View Friend Requests
+// View Friend Requests (No changes needed)
 exports.viewFriendRequests = async (req, res) => {
     try {
         const user = await User.findById(req.user.userId).populate('friendRequestsReceived', 'username firstName lastName');
@@ -16,8 +16,7 @@ exports.viewFriendRequests = async (req, res) => {
     }
 };
 
-
-// Send a Friend Request
+// Send a Friend Request (Now triggers a notification)
 exports.sendFriendRequest = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -45,9 +44,11 @@ exports.sendFriendRequest = async (req, res) => {
         // Update both users' friend request lists
         sender.friendRequestsSent.push(userId);
         receiver.friendRequestsReceived.push(senderId);
-
         await sender.save();
         await receiver.save();
+
+        // 🚀 **Trigger Friend Request Notification**
+        await sendNotification(userId, 'friend_request', sender.username);
 
         res.status(200).json({ message: "Friend request sent." });
     } catch (error) {
@@ -56,7 +57,7 @@ exports.sendFriendRequest = async (req, res) => {
     }
 };
 
-// Accept a Friend Request
+// Accept a Friend Request (Now triggers a notification)
 exports.acceptFriendRequest = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -80,9 +81,11 @@ exports.acceptFriendRequest = async (req, res) => {
         // Remove friend request
         receiver.friendRequestsReceived = receiver.friendRequestsReceived.filter(id => id.toString() !== userId);
         sender.friendRequestsSent = sender.friendRequestsSent.filter(id => id.toString() !== receiverId);
-
         await receiver.save();
         await sender.save();
+
+        // 🚀 **Trigger Friend Accept Notification**
+        await sendNotification(userId, 'friend_accept', receiver.username);
 
         res.status(200).json({ message: "Friend request accepted." });
     } catch (error) {
@@ -90,6 +93,7 @@ exports.acceptFriendRequest = async (req, res) => {
         res.status(500).json({ message: "Server error." });
     }
 };
+
 
 // Reject a Friend Request
 exports.rejectFriendRequest = async (req, res) => {
