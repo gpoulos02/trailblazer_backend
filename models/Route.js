@@ -30,10 +30,10 @@ const routeSchema = new mongoose.Schema({
         required: true,
     },
     trails: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'BlueMountainTrail',
+        type: Number,
+        ref: 'BlueMountainTrail', // Reference by runID instead of ObjectId
         required: true,
-    }], // Array of trail IDs representing the route
+    }], // Array of runIDs representing the route
     createdAt: {
         type: Date,
         default: Date.now,
