@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const notificationController = require('../controllers/notificationController');
+
+// console.log(notificationController);
+
 const authMiddleware = require('../middleware/authMiddleware');
 
 // POST: Send a notification to all users (Admin-related messages)

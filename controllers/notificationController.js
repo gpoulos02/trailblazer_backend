@@ -23,6 +23,33 @@ exports.sendToAllUsers = async (req, res) => {
     }
 };
 
+exports.sendToFriends = async (req, res) => {
+    try {
+        const { title, body } = req.body;
+        const senderId = req.user.userId;
+
+        if (!title || !body) {
+            return res.status(400).json({ message: "Title and body are required." });
+        }
+
+        const sender = await User.findById(senderId).populate('friends', '_id');
+
+        if (!sender || !sender.friends) {
+            return res.status(404).json({ message: "User or friends not found." });
+        }
+
+        for (const friend of sender.friends) {
+            await sendNotification(friend._id, 'friend_update', sender.username, title, body);
+        }
+
+        res.status(201).json({ message: "Notification sent to all friends!" });
+    } catch (error) {
+        console.error("Error sending friends notification:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+
 //Send Direct Message
 exports.sendDirectMessage = async (req, res) => {
     try {
