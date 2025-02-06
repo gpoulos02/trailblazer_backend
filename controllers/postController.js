@@ -26,25 +26,45 @@ exports.createTextPost = async (req, res) => {
     }
 };
 
-// Create a route post
 exports.createRoutePost = async (req, res) => {
     try {
-        const { routeId } = req.body;
-        if (!routeId) return res.status(400).json({ message: 'Route ID is required' });
+        const { routeId, title } = req.body;
 
+        // Validate request body
+        if (!routeId) {
+            return res.status(400).json({ message: 'Route ID is required' });
+        }
+        if (!title) {
+            return res.status(400).json({ message: 'Title is required for a post' });
+        }
+        if (!mongoose.Types.ObjectId.isValid(routeId)) {
+            return res.status(400).json({ message: 'Invalid Route ID' });
+        }
+
+        // Fetch route
         const route = await Route.findById(routeId);
-        if (!route) return res.status(404).json({ message: 'Route not found' });
+        if (!route) {
+            return res.status(404).json({ message: 'Route not found' });
+        }
 
+        // Ensure user is authenticated and has a valid userID (UUID as String)
+        if (!req.user || !req.user.userID) {
+            return res.status(401).json({ message: 'Unauthorized: User ID is missing' });
+        }
+
+        // Create post
         const post = new Post({
-            user: req.user.userId,
+            user: req.user.userID, // Store userID as a String
             type: 'route',
-            route: route._id
+            route: route._id,
+            title: title, // Include title in the post
         });
 
         await post.save();
-        res.status(201).json({ message: 'Route post created', post });
+
+        res.status(201).json({ message: 'Route post created successfully', post });
     } catch (error) {
-        console.error(error);
+        console.error('Error creating route post:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
