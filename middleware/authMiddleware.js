@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const InvalidatedToken = require('../models/InvalidatedToken'); // Import the InvalidatedToken model
+const User = require('../models/User');
+const InvalidatedToken = require('../models/InvalidatedToken');
 
 module.exports = async (req, res, next) => {
     const authHeader = req.header('Authorization');
@@ -13,7 +14,7 @@ module.exports = async (req, res, next) => {
     }
 
     try {
-        // Check if the token is in the invalidated tokens collection
+        // Check if the token is invalidated
         const invalidated = await InvalidatedToken.findOne({ token });
         if (invalidated) {
             return res.status(401).json({ message: 'Invalid token, authorization denied' });
@@ -22,10 +23,22 @@ module.exports = async (req, res, next) => {
         // Verify the token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Attach both userId and userID to req.user
+        // Fetch user details from the database
+        const user = await User.findOne({ userID: decoded.userID });
+
+        if (!user) {
+            return res.status(401).json({ message: 'User not found' });
+        }
+
+        // Block suspended users
+        if (user.suspended) {
+            return res.status(403).json({ message: 'Your account is suspended. Please contact support.' });
+        }
+
+        // Attach user details to req.user
         req.user = {
-            // id: decoded.userId,   // MongoDB ObjectID
-            userID: decoded.userID, // UUID
+            userID: user.userID, // UUID
+            role: user.role,     // Role (admin, user, mountain_owner)
         };
 
         next();

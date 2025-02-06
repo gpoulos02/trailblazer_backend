@@ -82,6 +82,12 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
+        // Check if the user is suspended
+        if (user.suspended) {
+            console.log('Suspended account login attempt:', username);
+            return res.status(403).json({ message: 'Your account is suspended. Please contact support.' });
+        }
+
         // Check password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {

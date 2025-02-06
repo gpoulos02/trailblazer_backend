@@ -31,6 +31,7 @@ const mapRoutes = require('./routes/mapRoutes');
 const postRoutes = require('./routes/postRoutes');
 const friendRoutes = require('./routes/friendRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 
 // Define routes
@@ -45,6 +46,7 @@ app.use('/api/map', mapRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/friends', friendRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
 
 
 // Root route
