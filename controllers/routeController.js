@@ -192,5 +192,27 @@ exports.deleteRoute = async (req, res) => {
         res.status(500).json({ message: "Server error while deleting route." });
     }
 };
+exports.getRunIDByRunName = async (req, res) => {
+    try {
+        const { runName } = req.query;  // Get runName from the query string
+
+        if (!runName) {
+            return res.status(400).json({ message: 'runName is required' });
+        }
+
+        // Fetch the trail by runName
+        const trail = await BlueMountainTrail.findOne({ runName });
+
+        if (!trail) {
+            return res.status(404).json({ message: 'Trail not found' });
+        }
+
+        // Respond with the runID
+        res.json({ runID: String(trail.runID) }); 
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
 
 module.exports = exports;
