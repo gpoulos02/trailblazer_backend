@@ -223,21 +223,32 @@ exports.getAllMetrics = async (req, res) => {
 exports.getMetricsByUserId = async (req, res) => {
     try {
         const { userID } = req.user;  // Extract userID from the middleware (req.user)
+        
+        console.log('User ID extracted:', userID);  // Log the extracted userID
+
+        // Ensure userID is a string (it could be passed as a string or an ObjectId, so we handle that here)
+        const userIdString = String(userID);
+        
+        console.log('User ID as string:', userIdString);  // Log the userID after converting to string
 
         // Find metrics for the given userID in the database
-        const metrics = await Metrics.find({ userID });
+        const metrics = await Metrics.find({ userID: userID }); // Use string as the query filter
+
+        console.log('Metrics fetched:', metrics);  // Log the metrics found
 
         if (!metrics || metrics.length === 0) {
+            console.log('No metrics found for user:', userIdString);  // Log if no metrics are found
             return res.status(404).json({ message: 'No metrics found for this user' });
         }
 
         // Return the found metrics
         res.status(200).json(metrics);
     } catch (error) {
-        console.error(error);
+        console.error('Error occurred:', error);  // Log the error details
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 
 
