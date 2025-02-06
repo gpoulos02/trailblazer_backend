@@ -3,18 +3,25 @@ const Route = require('../models/Route');
 const Metrics = require('../models/Metrics');
 const User = require('../models/User');
 const { sendNotification } = require('../utils/notificationUtils');
+const mongoose = require('mongoose'); 
+
 
 
 ///////////////////////Creating Posts//////////////////////
 // Create a text post
 exports.createTextPost = async (req, res) => {
     try {
-        const { textContent } = req.body;
+        const { title, textContent } = req.body;
         if (!textContent) return res.status(400).json({ message: 'Text content is required' });
+        if (!title) return res.status(400).json({ message: 'Title is required for a post' });
+
+        console.log("made it to the text post controller");
+        console.log('Creating text post:', textContent);
 
         const post = new Post({
-            user: req.user.userId,
+            user: req.user.userID,
             type: 'text',
+            title,
             textContent
         });
 
@@ -30,6 +37,9 @@ exports.createRoutePost = async (req, res) => {
     try {
         const { routeId, title } = req.body;
 
+        console.log("made it to the post controller");
+        console.log('Creating route post:', routeId, title);
+
         // Validate request body
         if (!routeId) {
             return res.status(400).json({ message: 'Route ID is required' });
@@ -37,15 +47,15 @@ exports.createRoutePost = async (req, res) => {
         if (!title) {
             return res.status(400).json({ message: 'Title is required for a post' });
         }
-        if (!mongoose.Types.ObjectId.isValid(routeId)) {
-            return res.status(400).json({ message: 'Invalid Route ID' });
-        }
+        // if (!mongoose.Types.ObjectId.isValid(routeId)) {
+        //     return res.status(400).json({ message: 'Invalid Route ID' });
+        // }
 
         // Fetch route
-        const route = await Route.findById(routeId);
-        if (!route) {
-            return res.status(404).json({ message: 'Route not found' });
-        }
+        // const route = await Route.findOne({ routeID: routeId });        
+        // if (!route) {
+        //     return res.status(404).json({ message: 'Route not found' });
+        // }
 
         // Ensure user is authenticated and has a valid userID (UUID as String)
         if (!req.user || !req.user.userID) {
@@ -56,7 +66,7 @@ exports.createRoutePost = async (req, res) => {
         const post = new Post({
             user: req.user.userID, // Store userID as a String
             type: 'route',
-            route: route._id,
+            route: routeId,
             title: title, // Include title in the post
         });
 
