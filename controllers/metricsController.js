@@ -20,6 +20,12 @@ exports.saveSession = async (req, res) => {
         if (!userID) {
             return res.status(400).json({ message: 'User not authenticated or userID missing' });
         }
+                // Print session data to confirm the values
+                console.log("Session Data to be Saved:", {
+                    userID,
+                    runID,
+                    sessionData,
+                });
 
         const metrics = new Metrics({
             userID,
@@ -28,6 +34,7 @@ exports.saveSession = async (req, res) => {
         });
 
         await metrics.save();
+        console.log("Saved Metrics:", metrics);
         res.status(201).json(metrics);
     } catch (error) {
         console.error(error);
@@ -196,7 +203,9 @@ exports.getRunsSortedBySpeed = async (req, res) => {
 // Get all performance metrics for the logged-in user
 exports.getAllMetrics = async (req, res) => {
     try {
-        const userID = req.user.userID;  // Get userID from the JWT
+        // Get the userID from the JWT token
+        const userID = req.user.userID;  // Assuming you have a middleware that decodes JWT and attaches the user object
+        console.log("userID: ", userID);  // Log userID for debugging
 
         // Fetch all performance metrics for the logged-in user
         const metrics = await Metrics.find({ userID }).exec();
@@ -205,12 +214,33 @@ exports.getAllMetrics = async (req, res) => {
             return res.status(404).json({ message: 'No metrics found for this user' });
         }
 
-        res.json(metrics);
+        res.json(metrics);  // Send the metrics data as response
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+exports.getMetricsByUserId = async (req, res) => {
+    try {
+        const { userID } = req.user;  // Extract userID from the middleware (req.user)
+
+        // Find metrics for the given userID in the database
+        const metrics = await Metrics.find({ userID });
+
+        if (!metrics || metrics.length === 0) {
+            return res.status(404).json({ message: 'No metrics found for this user' });
+        }
+
+        // Return the found metrics
+        res.status(200).json(metrics);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+
 
 
 module.exports = exports;

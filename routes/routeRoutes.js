@@ -14,5 +14,7 @@ router.get('/', authMiddleware, routeController.getUserRoutes);
 
 // DELETE /api/routes/:routeId - Delete a saved route
 router.delete('/:routeId', authMiddleware, routeController.deleteRoute);
+// GET /api/metrics/runIDByRunName - Get runID by runName
+router.get('/runIDByRunName', authMiddleware, routeController.getRunIDByRunName);
 
 module.exports = router;

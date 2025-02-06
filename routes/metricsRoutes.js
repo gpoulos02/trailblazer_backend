@@ -29,4 +29,10 @@ router.get('/speed', authMiddleware, metricsController.getRunsSortedBySpeed);
 
 router.get('/all', authMiddleware, metricsController.getAllMetrics);
 
+//get all metrics for particular user 
+router.get('/metrics', metricsController.getMetricsByUserId);
+
+
+
+
 module.exports = router;
