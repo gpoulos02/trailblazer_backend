@@ -199,28 +199,4 @@ exports.getUserPosts = async (req, res) => {
         res.status(200).json(posts);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
-
-// Retrieve posts from all friends
-exports.getFriendsPosts = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.userId).populate('friends');
-
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        const friendIds = user.friends.map(friend => friend._id);
-
-        const posts = await Post.find({ user: { $in: friendIds } })
-            .sort({ createdAt: -1 })
-            .populate('user', 'username')
-            .populate('route')
-            .populate('performance');
-
-        res.status(200).json(posts);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
+        res.status(500).json({ message
