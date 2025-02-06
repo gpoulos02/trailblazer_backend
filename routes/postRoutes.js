@@ -30,4 +30,7 @@ router.get('/user/:userId', authMiddleware, postController.getUserPosts);
 // Get posts from friends
 router.get('/friends', authMiddleware, postController.getFriendsPosts);
 
+// Report a post
+router.post('/report/:postId', authMiddleware, postController.reportPost);
+
 module.exports = router;

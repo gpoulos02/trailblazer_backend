@@ -1,3 +1,5 @@
+const Post = require('../models/Post');
+const Report = require('../models/Report');
 const User = require('../models/User');
 const sendEmail = require('../utils/emailService');
 const { sendNotification } = require('../utils/notificationUtils');
@@ -97,21 +99,99 @@ exports.unsuspendUser = async (req, res) => {
 // Delete a User Account 
 exports.deleteUser = async (req, res) => {
     try {
-        const user = await User.findByIdAndDelete(req.params.userId);
+        const user = await User.findById(req.params.userId);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Send account deletion email
+        // Delete all posts by the user
+        await Post.deleteMany({ user: user._id });
+
+        // Delete the user
+        await User.findByIdAndDelete(user._id);
+
+        // Delete related reports
+        await Report.deleteMany({ reportedBy: user._id });
+
+        // Notify user via email
         await sendEmail(
             user.email,
             'Account Deleted',
-            `Hello ${user.firstName},\n\nYour account has been permanently deleted. If this was a mistake, please contact support.\n\nRegards,\nTrailBlazer Team`
+            `Hello ${user.firstName},\n\nYour account has been permanently deleted due to repeated violations. If this was a mistake, please contact support.\n\nRegards,\nTrailBlazer Team`
         );
 
-        res.json({ message: 'User account deleted and notified via email' });
+        res.status(200).json({ message: 'User account and all associated posts deleted' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+// Get all reported posts (Admin only)
+exports.getReportedPosts = async (req, res) => {
+    try {
+        const reports = await Report.find()
+            .populate('post', 'textContent route performance')
+            .populate('reportedBy', 'username');
+
+        res.status(200).json(reports);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+//delete post fopr admins
+exports.adminDeletePost = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const post = await Post.findById(postId);
+        if (!post) return res.status(404).json({ message: 'Post not found' });
+
+        await Post.findByIdAndDelete(postId);
+        res.status(200).json({ message: 'Post deleted by admin' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Admin action: Ignore, Delete Post, Suspend/Delete User
+exports.adminActionOnReport = async (req, res) => {
+    try {
+        const { reportId, action } = req.body; // action = 'ignore', 'delete_post', 'suspend_user', 'delete_user'
+
+        const report = await Report.findById(reportId).populate('post');
+        if (!report) return res.status(404).json({ message: 'Report not found' });
+
+        const post = await Post.findById(report.post._id);
+        const user = await User.findById(post.user);
+
+        if (action === 'ignore') {
+            await report.delete();
+            return res.status(200).json({ message: 'Report ignored' });
+        }
+
+        if (action === 'delete_post') {
+            await exports.adminDeletePost({ params: { postId: post._id } }, res); // Call the admin delete function
+            await report.delete();
+            return;
+        }
+
+        if (action === 'suspend_user') {
+            await exports.suspendUser({ params: { userId: user._id } }, res); // Use existing function
+            return;
+        }
+
+        if (action === 'delete_user') {
+            await exports.deleteUser({ params: { userId: user._id } }, res); // Use existing function
+            return;
+        }
+
+        res.status(400).json({ message: 'Invalid action' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+

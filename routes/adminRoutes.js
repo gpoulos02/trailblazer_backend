@@ -16,4 +16,11 @@ router.put('/unsuspend-user/:userId', authMiddleware, roleMiddleware(['admin']),
 // Delete a User
 router.delete('/delete-user/:userId', authMiddleware, roleMiddleware(['admin']), adminController.deleteUser);
 
+//delete a users post (admin)
+router.delete('/:postId', authMiddleware, postController.deletePost);
+
+// Admin action: Ignore, Delete Post, Suspend/Delete User
+router.post('/action', authMiddleware, roleMiddleware(['admin']), adminController.adminActionOnReport);
+
+
 module.exports = router;

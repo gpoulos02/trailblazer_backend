@@ -2,6 +2,7 @@ const Post = require('../models/Post');
 const Route = require('../models/Route');
 const Metrics = require('../models/Metrics');
 const User = require('../models/User');
+const Report = require('../models/Report');
 const { sendNotification } = require('../utils/notificationUtils');
 
 
@@ -155,16 +156,17 @@ exports.deletePost = async (req, res) => {
 
         // Ensure the user owns the post
         if (post.user.toString() !== req.user.userId) {
-            return res.status(403).json({ message: 'Unauthorized' });
+            return res.status(403).json({ message: 'Unauthorized: You can only delete your own posts' });
         }
 
         await Post.findByIdAndDelete(req.params.postId);
-        res.status(200).json({ message: 'Post deleted' });
+        res.status(200).json({ message: 'Post deleted successfully' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 ////////////////////////////////////Retreiving User Posts///////////////////////////////////
 
@@ -219,6 +221,37 @@ exports.getFriendsPosts = async (req, res) => {
             .populate('performance');
 
         res.status(200).json(posts);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Report a post
+exports.reportPost = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { reason } = req.body;
+        const reporterId = req.user.userId;
+
+        const post = await Post.findById(postId).populate('user', 'username');
+
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+
+        // Check if the user already reported this post
+        const existingReport = await Report.findOne({ post: postId, reportedBy: reporterId });
+        if (existingReport) {
+            return res.status(400).json({ message: 'You have already reported this post' });
+        }
+
+        // Create new report
+        const report = new Report({ post: postId, reportedBy: reporterId, reason });
+
+        await report.save();
+
+        res.status(200).json({ message: 'Post reported successfully', report });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
