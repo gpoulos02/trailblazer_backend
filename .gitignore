@@ -9,7 +9,7 @@ logs/
 *.log
 
 #ignoring all JSONs
-blueMountainTrails.json
+Trails.json
 chairlifts.json
 POIs.json
 

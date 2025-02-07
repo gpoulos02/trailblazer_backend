@@ -5,6 +5,10 @@ const metricsSchema = new mongoose.Schema({
         type: String, // Using userID as a string
         required: true,
     },
+    mountainID: {
+        type: Number,
+        required: true
+    },
     runID: {
         type: Number, // Run ID of the ski trail
         required: true,

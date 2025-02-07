@@ -3,36 +3,32 @@ const router = express.Router();
 const metricsController = require('../controllers/metricsController');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// POST /api/metrics - Save a ski session
+// POST: Save a ski session 
 router.post('/', authMiddleware, metricsController.saveSession);
 
-// GET /api/metrics/dates - Get a list of session dates
+// GET: Get a list of session dates 
 router.get('/dates', authMiddleware, metricsController.getSessionDates);
 
-// GET /api/metrics/overview - Get an overview of metrics over a specified period
+// GET: Get an overview of metrics 
 router.get('/overview', authMiddleware, metricsController.getMetricOverview);
 
-// GET /api/metrics/:id - Get session data for a specific session
+// GET: Get session data by ID 
 router.get('/:id', authMiddleware, metricsController.getSessionById);
 
-// DELETE /api/metrics/:id - Delete a specific session
+// DELETE: Delete a specific session 
 router.delete('/:id', authMiddleware, metricsController.deleteSession);
 
-// get all metrics for specific by runID
-router.get('/runID/:runID', authMiddleware, metricsController.getRunsByRunID);
+// GET: Get all runs by runID 
+router.get('/runID/:mountainID/:runID', authMiddleware, metricsController.getRunsByRunID);
 
-// get all metrics for specific by date
+// GET: Get all runs by date 
 router.get('/date', authMiddleware, metricsController.getRunsByDate);
 
-// GET /api/metrics/speed - Get all runs sorted by top speed (fastest to slowest)
+// GET: Get all runs sorted by top speed 
 router.get('/speed', authMiddleware, metricsController.getRunsSortedBySpeed);
 
-router.get('/all', authMiddleware, metricsController.getAllMetrics);
-
-//get all metrics for particular user 
-router.get('/metrics', metricsController.getMetricsByUserId);
-
-
-
+// GET: Get all metrics for the user 
+router.get('/metrics', authMiddleware, metricsController.getMetricsByUserId);
 
 module.exports = router;
+

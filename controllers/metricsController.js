@@ -1,44 +1,40 @@
 const Metrics = require('../models/Metrics');
+const Mountain = require('../models/Mountain');
+
 
 exports.saveSession = async (req, res) => {
     try {
-        const { sessionData, runID } = req.body;
+        const { sessionData, runID, mountainID } = req.body;
 
-        // Validate session data
-        if (
-            !sessionData.topSpeed ||
-            !sessionData.distance ||
-            !sessionData.elevationGain ||
-            !sessionData.duration ||
-            !runID // Ensure runID is provided
-        ) {
-            return res.status(400).json({ message: 'All session data fields and runID are required' });
+        if (!sessionData || !sessionData.topSpeed || !sessionData.distance || 
+            !sessionData.elevationGain || !sessionData.duration || !runID || mountainID === undefined) {
+            return res.status(400).json({ message: 'All session data fields, runID, and mountainID are required' });
         }
 
         const userID = req.user.userID;
-
         if (!userID) {
             return res.status(400).json({ message: 'User not authenticated or userID missing' });
         }
-                // Print session data to confirm the values
-                console.log("Session Data to be Saved:", {
-                    userID,
-                    runID,
-                    sessionData,
-                });
 
+        // Validate that the mountain exists
+        const mountainExists = await Mountain.findOne({ mountainID });
+        if (!mountainExists) {
+            return res.status(404).json({ message: 'Mountain not found' });
+        }
+
+        // Save the session
         const metrics = new Metrics({
             userID,
             runID,
+            mountainID,
             sessionData,
         });
 
         await metrics.save();
-        console.log("Saved Metrics:", metrics);
-        res.status(201).json(metrics);
+        res.status(201).json({ message: 'Session saved successfully', metrics });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error saving session:', error);
+        res.status(500).json({ message: 'Server error while saving session' });
     }
 };
 
@@ -140,19 +136,17 @@ exports.getMetricOverview = async (req, res) => {
 
 exports.getRunsByRunID = async (req, res) => {
     try {
-        const { runID } = req.params;
-        const userID = req.user.userID;  // Get userID from the JWT
+        const { runID, mountainID } = req.params;
 
-        // Fetch the runs only for the logged-in user
-        const runs = await Metrics.find({ runID, userID }).exec();
+        const runs = await Metrics.find({ runID, mountainID, userID: req.user.userID });
 
         if (!runs.length) {
-            return res.status(404).json({ message: 'No runs found for this user with the given runID' });
+            return res.status(404).json({ message: 'No runs found for this runID and mountain.' });
         }
 
         res.json(runs);
     } catch (error) {
-        console.error(error);
+        console.error('Error retrieving runs by runID:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };

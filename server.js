@@ -20,33 +20,35 @@ app.use(cors());
 app.use(express.json());
 
 // Import routes
-const authRoutes = require('./routes/authRoutes');
-const routeRoutes = require('./routes/routeRoutes');
-const metricsRoutes = require('./routes/metricsRoutes');
-const weatherRoutes = require('./routes/weatherRoutes');
-const poiRoutes = require('./routes/poiRoutes');
-const trailRoutes = require('./routes/trailRoutes');
-const chairliftRoutes = require('./routes/chairliftRoutes');
-const mapRoutes = require('./routes/mapRoutes');
-const postRoutes = require('./routes/postRoutes');
-const friendRoutes = require('./routes/friendRoutes');
-const notificationRoutes = require('./routes/notificationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const authRoutes = require('./routes/authRoutes');
+const chairliftRoutes = require('./routes/chairliftRoutes');
+const friendRoutes = require('./routes/friendRoutes');
+const mapRoutes = require('./routes/mapRoutes');
+const metricsRoutes = require('./routes/metricsRoutes');
+const mountainRoutes = require('./routes/mountainRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const poiRoutes = require('./routes/poiRoutes');
+const postRoutes = require('./routes/postRoutes');
+const routeRoutes = require('./routes/routeRoutes');
+const trailRoutes = require('./routes/trailRoutes');
+const weatherRoutes = require('./routes/weatherRoutes');
 
 
 // Define routes
-app.use('/api/auth', authRoutes);         // Authentication routes
-app.use('/api/routes', routeRoutes);       // Route planning/navigation routes
-app.use('/api/metrics', metricsRoutes);    // Performance metrics routes
-app.use('/api/weather', weatherRoutes);    // Weather data routes
-app.use('/api/pois', poiRoutes);            // Add POI routes
-app.use('/api/trails', trailRoutes);       // Add trail routes
-app.use('/api/chairlifts', chairliftRoutes); // Add chairlift routes
-app.use('/api/map', mapRoutes); 
-app.use('/api/posts', postRoutes);
-app.use('/api/friends', friendRoutes);
-app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/auth', authRoutes);         // Authentication routes
+app.use('/api/chairlifts', chairliftRoutes); // Add chairlift routes
+app.use('/api/friends', friendRoutes);
+app.use('/api/map', mapRoutes); 
+app.use('/api/metrics', metricsRoutes);    // Performance metrics routes
+app.use('/api/mountains', mountainRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/pois', poiRoutes);            // Add POI routes
+app.use('/api/posts', postRoutes);
+app.use('/api/routes', routeRoutes);       // Route planning/navigation routes
+app.use('/api/trails', trailRoutes);       // Add trail routes
+app.use('/api/weather', weatherRoutes);    // Weather data routes
 
 
 // Root route
