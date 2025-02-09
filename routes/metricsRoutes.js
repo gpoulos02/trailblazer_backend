@@ -13,7 +13,7 @@ router.get('/dates', authMiddleware, metricsController.getSessionDates);
 router.get('/overview', authMiddleware, metricsController.getMetricOverview);
 
 // GET /api/metrics/:id - Get session data for a specific session
-router.get('/:id', authMiddleware, metricsController.getSessionById);
+router.get('/session/:id', authMiddleware, metricsController.getSessionById);
 
 // DELETE /api/metrics/:id - Delete a specific session
 router.delete('/:id', authMiddleware, metricsController.deleteSession);
