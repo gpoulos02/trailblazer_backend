@@ -26,6 +26,7 @@ const chairliftRoutes = require('./routes/chairliftRoutes');
 const friendRoutes = require('./routes/friendRoutes');
 const mapRoutes = require('./routes/mapRoutes');
 const metricsRoutes = require('./routes/metricsRoutes');
+const mountainOwnerRoutes = require('./routes/mountainOwnerRoutes');
 const mountainRoutes = require('./routes/mountainRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const poiRoutes = require('./routes/poiRoutes');
@@ -42,6 +43,7 @@ app.use('/api/chairlifts', chairliftRoutes); // Add chairlift routes
 app.use('/api/friends', friendRoutes);
 app.use('/api/map', mapRoutes); 
 app.use('/api/metrics', metricsRoutes);    // Performance metrics routes
+app.use('/api/mountain-owner', mountainOwnerRoutes);
 app.use('/api/mountains', mountainRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/pois', poiRoutes);            // Add POI routes
