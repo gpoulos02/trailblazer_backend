@@ -1,4 +1,5 @@
 const Post = require('../models/Post');
+const MountainRequest = require('../models/MountainRequest'); 
 const Report = require('../models/Report');
 const User = require('../models/User');
 const sendEmail = require('../utils/emailService');
@@ -37,6 +38,42 @@ exports.approveMountainOwner = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+// Approve a Mountain Owner 
+exports.demoteMountainOwner = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.role = 'user';
+        await user.save();
+
+        // Send  email
+        await sendEmail(
+            user.email,
+            'Mountain Owner Demotion',
+            `Hello ${user.firstName},\n\nUnfortunately, You have been demoted as a Mountain Owner. You now no longer have access to additional features within the TrailBlazer app.\n\nRegards,\nTrailBlazer Team`
+        );
+
+        // Send in-app notification
+        await sendNotification(
+            user._id,
+            'system_alert',
+            '',
+            'Mountain Owner Demotion',
+            'You have been demoted from being a Mountain Owner!'
+        );
+
+        res.json({ message: 'User demoted from Mountain Owner and notified' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
 
 // Suspend a User 
 exports.suspendUser = async (req, res) => {
@@ -191,6 +228,101 @@ exports.adminActionOnReport = async (req, res) => {
         res.status(400).json({ message: 'Invalid action' });
     } catch (error) {
         console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Get all pending mountain requests
+exports.getMountainRequests = async (req, res) => {
+    try {
+        const requests = await MountainRequest.find({ status: 'pending' });
+        res.status(200).json(requests);
+    } catch (error) {
+        console.error('Error fetching mountain requests:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Get a specific mountain request by ID
+exports.getMountainRequestById = async (req, res) => {
+    try {
+        const request = await MountainRequest.findById(req.params.id);
+        if (!request) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
+        res.status(200).json(request);
+    } catch (error) {
+        console.error('Error fetching request details:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Accept a mountain request
+exports.acceptMountainRequest = async (req, res) => {
+    try {
+        const request = await MountainRequest.findById(req.params.id);
+        if (!request) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
+
+        // Placeholder for additional acceptance logic
+        // TODO: Implement logic to integrate accepted mountain requests into the system
+
+        request.status = 'accepted';
+        await request.save();
+
+        // Notify user
+        await sendNotification(
+            request.ownerId,
+            'system_alert',
+            '',
+            'Mountain Request Approved',
+            `Your request for ${request.mountainName} has been approved!`
+        );
+
+        // Send email
+        await sendEmail(
+            request.ownerEmail,
+            'Mountain Request Approved',
+            `Your request for ${request.mountainName} has been approved.`
+        );
+
+        res.status(200).json({ message: 'Mountain request accepted successfully.' });
+    } catch (error) {
+        console.error('Error accepting request:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Deny a mountain request
+exports.denyMountainRequest = async (req, res) => {
+    try {
+        const request = await MountainRequest.findById(req.params.id);
+        if (!request) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
+
+        await MountainRequest.findByIdAndDelete(req.params.id);
+
+        // Notify user
+        await sendNotification(
+            request.ownerId,
+            'system_alert',
+            '',
+            'Mountain Request Denied',
+            `Unfortunately, your request for ${request.mountainName} has been denied.`
+        );
+
+        // Send email
+        await sendEmail(
+            request.ownerEmail,
+            'Mountain Request Denied',
+            `Unfortunately, your request for ${request.mountainName} has been denied.`
+        );
+
+        res.status(200).json({ message: 'Mountain request denied and deleted successfully.' });
+    } catch (error) {
+        console.error('Error denying request:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
