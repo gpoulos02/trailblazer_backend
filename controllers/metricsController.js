@@ -1,46 +1,46 @@
 const Metrics = require('../models/Metrics');
+const { v4: uuidv4 } = require('uuid');
+
 
 exports.saveSession = async (req, res) => {
     try {
         const { sessionData, runID } = req.body;
 
-        // Validate session data
         if (
             !sessionData.topSpeed ||
             !sessionData.distance ||
             !sessionData.elevationGain ||
             !sessionData.duration ||
-            !runID // Ensure runID is provided
+            !runID
         ) {
             return res.status(400).json({ message: 'All session data fields and runID are required' });
         }
 
         const userID = req.user.userID;
-
         if (!userID) {
             return res.status(400).json({ message: 'User not authenticated or userID missing' });
         }
-                // Print session data to confirm the values
-                console.log("Session Data to be Saved:", {
-                    userID,
-                    runID,
-                    sessionData,
-                });
+
+        // Create a new sessionID for each save (uuid)
+        const sessionID = uuidv4();
 
         const metrics = new Metrics({
+            sessionID,  // Include the unique sessionID here
             userID,
             runID,
             sessionData,
+            createdAt: new Date(),
         });
 
         await metrics.save();
-        console.log("Saved Metrics:", metrics);
         res.status(201).json(metrics);
     } catch (error) {
-        console.error(error);
+        console.error('Error saving session:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+
 
 exports.getSessionDates = async (req, res) => {
     try {
@@ -235,6 +235,7 @@ exports.getMetricsByUserId = async (req, res) => {
         const metrics = await Metrics.find({ userID: userID }); // Use string as the query filter
 
         console.log('Metrics fetched:', metrics);  // Log the metrics found
+
 
         if (!metrics || metrics.length === 0) {
             console.log('No metrics found for user:', userIdString);  // Log if no metrics are found

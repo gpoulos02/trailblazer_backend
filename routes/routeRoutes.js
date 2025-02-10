@@ -17,4 +17,8 @@ router.delete('/:routeId', authMiddleware, routeController.deleteRoute);
 // GET /api/metrics/runIDByRunName - Get runID by runName
 router.get('/runIDByRunName', authMiddleware, routeController.getRunIDByRunName);
 
+router.get('/runNamebyID', authMiddleware, routeController.getRunNameByRunID);
+
+router.get('/route-names', authMiddleware, routeController.getRouteNames);
+
 module.exports = router;

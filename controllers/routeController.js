@@ -215,4 +215,60 @@ exports.getRunIDByRunName = async (req, res) => {
     }
 };
 
+
+exports.getRunNameByRunID = async (req, res) => {
+    try {
+        const { runID } = req.query;  // Get runID from query parameter
+
+        if (!runID) {
+            return res.status(400).json({ message: 'runID is required' });
+        }
+
+        // Find the trail by runID
+        const trail = await BlueMountainTrail.findOne({ runID });
+
+        if (!trail) {
+            return res.status(404).json({ message: 'Trail not found for the provided runID' });
+        }
+
+        // Return the runName (or trail name) from the BlueMountainTrail model
+        res.json({ runName: String(trail.runName) });
+    } catch (error) {
+        console.error('Error fetching run name:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+//get all route names 
+// get all route names
+exports.getRouteNames = async (req, res) => {
+    try {
+        // Fetch all trails, returning only the 'runName' field
+        const trails = await BlueMountainTrail.find({}, 'runName'); // This queries the 'runName' field
+        //console.log("Fetched trails:", trails); // Debugging: Log the fetched trails
+
+        // If no trails are found, return an empty array with a message
+        if (trails.length === 0) {
+            console.log("No routes found in the database."); // Debugging: Log if no routes are found
+            return res.status(404).json({ message: 'No routes found', routes: [] });
+        }
+
+        // Respond with the trail names in the expected format
+        const trailNames = trails.map(trail => trail.runName);
+        //console.log("Trail names to return:", trailNames); // Debugging: Log the names that will be returned
+
+        res.status(200).json({
+            message: 'Route names retrieved successfully',
+            routes: trailNames // Extract the runName from each trail document
+        });
+    } catch (error) {
+        console.error('Error retrieving route names:', error); // Debugging: Log the error
+        res.status(500).json({ message: 'Error retrieving route names', error: error.message });
+    }
+};
+
+
+
+
+
 module.exports = exports;
