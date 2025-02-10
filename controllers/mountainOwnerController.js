@@ -1,42 +1,58 @@
 const MountainRequest = require('../models/MountainRequest');
 const User = require('../models/User');
+const multer = require('multer');
 
-// Submit a new mountain request (Mountain Owner Only)
+const upload = multer().fields([
+    { name: 'trailsFile', maxCount: 1 },
+    { name: 'pointsOfInterestFile', maxCount: 1 },
+    { name: 'chairliftsFile', maxCount: 1 },
+    { name: 'geoJsonFile', maxCount: 1 }
+]);
+
 exports.requestNewMountain = async (req, res) => {
-    try {
-        const { name, location, description, geoJson, trails, pointsOfInterest, chairlifts } = req.body;
+    upload(req, res, async function (err) {
+        try {
+            if (err) {
+                return res.status(400).json({ message: "File upload error.", error: err });
+            }
 
-        // Ensure the user is a mountain owner
-        const user = await User.findById(req.user.userId);
-        if (!user || user.role !== 'mountain_owner') {
-            return res.status(403).json({ message: "Unauthorized. Only mountain owners can request new mountains." });
+            const { name, location, description } = req.body;
+
+            const user = await User.findById(req.user.userId);
+            if (!user || user.role !== 'mountain_owner') {
+                return res.status(403).json({ message: "Unauthorized. Only mountain owners can request new mountains." });
+            }
+
+            if (!name || !location || !description || !req.files) {
+                return res.status(400).json({ message: "Missing required fields or files." });
+            }
+
+            // Helper function to parse JSON files
+            const parseJSONFile = (file) => file ? JSON.parse(file.buffer.toString()) : [];
+
+            const newRequest = new MountainRequest({
+                name,
+                location: JSON.parse(location),
+                description,
+                geoJson: parseJSONFile(req.files.geoJsonFile ? req.files.geoJsonFile[0] : null),
+                trails: parseJSONFile(req.files.trailsFile ? req.files.trailsFile[0] : null),
+                pointsOfInterest: parseJSONFile(req.files.pointsOfInterestFile ? req.files.pointsOfInterestFile[0] : null),
+                chairlifts: parseJSONFile(req.files.chairliftsFile ? req.files.chairliftsFile[0] : null),
+                submittedBy: req.user.userId,
+                status: 'pending'
+            });
+
+            await newRequest.save();
+
+            res.status(201).json({ 
+                message: "Mountain request submitted successfully.", 
+                requestId: newRequest._id
+            });
+        } catch (error) {
+            console.error("Error submitting mountain request:", error);
+            res.status(500).json({ message: "Server error." });
         }
-
-        // Validate required fields
-        if (!name || !location || !description || !geoJson || !trails || !pointsOfInterest || !chairlifts) {
-            return res.status(400).json({ message: "Missing required fields." });
-        }
-
-        // Save the request in the database as 'pending'
-        const newRequest = new MountainRequest({
-            name,
-            location,
-            description,
-            geoJson,
-            trails,
-            pointsOfInterest,
-            chairlifts,
-            submittedBy: req.user.userId,
-            status: 'pending'
-        });
-
-        await newRequest.save();
-
-        res.status(201).json({ message: "Mountain request submitted successfully. Awaiting admin approval.", requestId: newRequest._id });
-    } catch (error) {
-        console.error("Error submitting mountain request:", error);
-        res.status(500).json({ message: "Server error." });
-    }
+    });
 };
 
 // Get all requests submitted by the current mountain owner

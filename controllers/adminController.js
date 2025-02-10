@@ -246,16 +246,35 @@ exports.getMountainRequests = async (req, res) => {
 // Get a specific mountain request by ID
 exports.getMountainRequestById = async (req, res) => {
     try {
-        const request = await MountainRequest.findById(req.params.id);
+        const { requestId } = req.params;
+        const request = await MountainRequest.findById(requestId);
+
         if (!request) {
-            return res.status(404).json({ message: 'Request not found' });
+            return res.status(404).json({ message: "Request not found." });
         }
-        res.status(200).json(request);
+
+        // Convert stored arrays back to JSON format
+        const formatJSON = (data) => JSON.stringify(data, null, 4); // Pretty print
+
+        res.status(200).json({
+            name: request.name,
+            location: request.location,
+            description: request.description,
+            files: {
+                geoJson: formatJSON(request.geoJson),
+                trails: formatJSON(request.trails),
+                pointsOfInterest: formatJSON(request.pointsOfInterest),
+                chairlifts: formatJSON(request.chairlifts)
+            },
+            status: request.status,
+            submittedAt: request.submittedAt
+        });
     } catch (error) {
-        console.error('Error fetching request details:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error("Error fetching request details:", error);
+        res.status(500).json({ message: "Server error." });
     }
 };
+
 
 // Accept a mountain request
 exports.acceptMountainRequest = async (req, res) => {
@@ -326,4 +345,35 @@ exports.denyMountainRequest = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+
+
+//////////////////////////////////////////////Functions to create new mountain/////////////////////////////////////////////
+
+const createMountain = async (request, mountainId) => {
+    const newMountain = new Mountain({
+        mountainId,
+        name: request.mountainName,
+        description: request.description,
+        coordinates: request.coordinates
+    });
+
+    return await newMountain.save();
+};
+
+const appendMountainIdToData = async (request, mountainId) => {
+    // Process POIs
+    const updatedPOIs = request.pois.map(poi => ({ ...poi, mountainId }));
+    await PointOfInterest.insertMany(updatedPOIs);
+
+    // Process Chairlifts
+    const updatedChairlifts = request.chairlifts.map(lift => ({ ...lift, mountainId }));
+    await Chairlift.insertMany(updatedChairlifts);
+
+    // Process Trails
+    const updatedTrails = request.trails.map(trail => ({ ...trail, mountainId }));
+    await BlueMountainTrail.insertMany(updatedTrails);
+};
+
+
 

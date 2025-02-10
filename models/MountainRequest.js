@@ -7,13 +7,13 @@ const mountainRequestSchema = new mongoose.Schema({
         longitude: { type: Number, required: true }
     },
     description: { type: String, required: true },
-    geoJson: { type: Object, required: true }, // GeoJSON data for mapping
-    trails: { type: Array, required: true }, // Array of trails as per schema
-    pointsOfInterest: { type: Array, required: true }, // Array of POIs
-    chairlifts: { type: Array, required: true }, // Array of chairlifts
-    submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Owner ID
-    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }, // Approval status
-    submittedAt: { type: Date, default: Date.now } // Timestamp
+    geoJson: { type: Object, required: true }, // Store parsed GeoJSON
+    trails: { type: Array, required: true }, // Store parsed trails data
+    pointsOfInterest: { type: Array, required: true }, // Store parsed POIs
+    chairlifts: { type: Array, required: true }, // Store parsed chairlifts
+    submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    submittedAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('MountainRequest', mountainRequestSchema);
