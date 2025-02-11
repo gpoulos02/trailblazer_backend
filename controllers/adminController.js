@@ -276,7 +276,6 @@ exports.getMountainRequestById = async (req, res) => {
 };
 
 
-// Accept a mountain request
 exports.acceptMountainRequest = async (req, res) => {
     try {
         const request = await MountainRequest.findById(req.params.id);
@@ -284,29 +283,41 @@ exports.acceptMountainRequest = async (req, res) => {
             return res.status(404).json({ message: 'Request not found' });
         }
 
-        // Placeholder for additional acceptance logic
-        // TODO: Implement logic to integrate accepted mountain requests into the system
+        // Generate the next available mountain ID
+        const lastMountain = await Mountain.findOne().sort({ mountainID: -1 });
+        const newMountainID = lastMountain ? lastMountain.mountainID + 1 : 1;
 
-        request.status = 'accepted';
+        // Create a new Mountain entry
+        const createdMountain = await createMountain(request, newMountainID);
+
+        // Append mountainID to all related data and save them
+        await appendMountainIdToData(request, newMountainID);
+
+        // Update request status
+        request.status = 'approved';
         await request.save();
 
-        // Notify user
+        // Delete the approved request
+        await MountainRequest.findByIdAndDelete(req.params.id);
+
+        // Notify the user about approval
         await sendNotification(
-            request.ownerId,
+            request.submittedBy,
             'system_alert',
             '',
             'Mountain Request Approved',
-            `Your request for ${request.mountainName} has been approved!`
+            `Your request for ${request.name} has been approved!`
         );
 
-        // Send email
+        // Send an email notification
         await sendEmail(
             request.ownerEmail,
             'Mountain Request Approved',
-            `Your request for ${request.mountainName} has been approved.`
+            `Your request for ${request.name} has been approved.`
         );
 
-        res.status(200).json({ message: 'Mountain request accepted successfully.' });
+        res.status(200).json({ message: 'Mountain request accepted and integrated successfully.' });
+
     } catch (error) {
         console.error('Error accepting request:', error);
         res.status(500).json({ message: 'Server error' });
@@ -350,30 +361,39 @@ exports.denyMountainRequest = async (req, res) => {
 
 //////////////////////////////////////////////Functions to create new mountain/////////////////////////////////////////////
 
+// Helper function to create a new mountain
 const createMountain = async (request, mountainId) => {
     const newMountain = new Mountain({
-        mountainId,
-        name: request.mountainName,
-        description: request.description,
-        coordinates: request.coordinates
+        mountainID: mountainId,
+        name: request.name,
+        location: request.location,
+        description: request.description
     });
 
     return await newMountain.save();
 };
 
+// Helper function to append mountainID and save related data
 const appendMountainIdToData = async (request, mountainId) => {
-    // Process POIs
-    const updatedPOIs = request.pois.map(poi => ({ ...poi, mountainId }));
-    await PointOfInterest.insertMany(updatedPOIs);
+    const PointOfInterest = require('../models/PointOfInterest');
+    const Chairlift = require('../models/Chairlift');
+    const Trail = require('../models/Trail');
 
-    // Process Chairlifts
-    const updatedChairlifts = request.chairlifts.map(lift => ({ ...lift, mountainId }));
-    await Chairlift.insertMany(updatedChairlifts);
+    // Append mountainID to POIs
+    if (request.pointsOfInterest && request.pointsOfInterest.length > 0) {
+        const updatedPOIs = request.pointsOfInterest.map(poi => ({ ...poi, mountainID: mountainId }));
+        await PointOfInterest.insertMany(updatedPOIs);
+    }
 
-    // Process Trails
-    const updatedTrails = request.trails.map(trail => ({ ...trail, mountainId }));
-    await BlueMountainTrail.insertMany(updatedTrails);
+    // Append mountainID to Chairlifts
+    if (request.chairlifts && request.chairlifts.length > 0) {
+        const updatedChairlifts = request.chairlifts.map(lift => ({ ...lift, mountainID: mountainId }));
+        await Chairlift.insertMany(updatedChairlifts);
+    }
+
+    // Append mountainID to Trails
+    if (request.trails && request.trails.length > 0) {
+        const updatedTrails = request.trails.map(trail => ({ ...trail, mountainID: mountainId }));
+        await Trail.insertMany(updatedTrails);
+    }
 };
-
-
-
