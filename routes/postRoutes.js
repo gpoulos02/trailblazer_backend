@@ -25,7 +25,7 @@ router.delete('/:postId', authMiddleware, postController.deletePost);
 router.get('/my-posts', authMiddleware, postController.getMyPosts);
 
 // Get posts from a specific user
-router.get('/user/:userId', authMiddleware, postController.getUserPosts);
+router.get('/user/:userID', authMiddleware, postController.getUserPosts);
 
 // Get posts from friends
 router.get('/friends', authMiddleware, postController.getFriendsPosts);

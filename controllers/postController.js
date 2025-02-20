@@ -19,7 +19,7 @@ exports.createTextPost = async (req, res) => {
         console.log('Creating text post:', textContent);
 
         const post = new Post({
-            user: req.user.userID,
+            userID: req.user.userID,
             type: 'text',
             title,
             textContent
@@ -35,38 +35,28 @@ exports.createTextPost = async (req, res) => {
 
 exports.createRoutePost = async (req, res) => {
     try {
-        const { routeId, title } = req.body;
+        const { routeID, title } = req.body;
 
         console.log("made it to the post controller");
-        console.log('Creating route post:', routeId, title);
+        console.log('Creating route post:', routeID, title);
 
         // Validate request body
-        if (!routeId) {
+        if (!routeID) {
             return res.status(400).json({ message: 'Route ID is required' });
         }
         if (!title) {
             return res.status(400).json({ message: 'Title is required for a post' });
         }
-        // if (!mongoose.Types.ObjectId.isValid(routeId)) {
-        //     return res.status(400).json({ message: 'Invalid Route ID' });
-        // }
-
-        // Fetch route
-        // const route = await Route.findOne({ routeID: routeId });        
-        // if (!route) {
-        //     return res.status(404).json({ message: 'Route not found' });
-        // }
-
-        // Ensure user is authenticated and has a valid userID (UUID as String)
+        
         if (!req.user || !req.user.userID) {
             return res.status(401).json({ message: 'Unauthorized: User ID is missing' });
         }
 
         // Create post
         const post = new Post({
-            user: req.user.userID, // Store userID as a String
+            userID: req.user.userID, // Store userID as a String
             type: 'route',
-            route: routeId,
+            route: routeID,
             title: title, // Include title in the post
         });
 
@@ -82,16 +72,19 @@ exports.createRoutePost = async (req, res) => {
 // Create a performance post
 exports.createPerformancePost = async (req, res) => {
     try {
-        const { performanceId } = req.body;
-        if (!performanceId) return res.status(400).json({ message: 'Performance ID is required' });
+        const { sessionID, title } = req.body; // Get sessionID and title from the request body
+        if (!sessionID) return res.status(400).json({ message: 'Session ID is required' });
 
-        const performance = await Metrics.findById(performanceId);
-        if (!performance) return res.status(404).json({ message: 'Performance data not found' });
+        // Search for the session using the sessionID field (not Mongo's default _id)
+        const session = await Metrics.findOne({ sessionID: sessionID });
+        if (!session) return res.status(404).json({ message: 'Session data not found' });
 
+        // Create a new post using the found session data
         const post = new Post({
-            user: req.user.userId,
+            userID: req.user.userID, // Assuming req.user contains user information
             type: 'performance',
-            performance: performance._id
+            performance: sessionID, // Store the sessionID to link the performance post
+            title: title // Use the title provided from the front-end
         });
 
         await post.save();
@@ -101,6 +94,7 @@ exports.createPerformancePost = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 //////////////////////////Interacting with Posts//////////////////////////////
 
@@ -180,16 +174,26 @@ exports.deletePost = async (req, res) => {
 
 // Retrieve all posts from the logged-in user
 exports.getMyPosts = async (req, res) => {
+    console.log("made it to the get my posts controller");
     try {
-        const posts = await Post.find({ user: req.user.userId })
-            .sort({ createdAt: -1 }) // Newest posts first
-            .populate('user', 'username') // Populate user info
-            .populate('route') // Populate route details if any
-            .populate('performance'); // Populate performance details if any
+        console.log("made it to the try block");
+
+        const posts = await Post.find({ userID: req.user.userID })
+            .sort({ createdAt: -1 })
+            .lean()
+            .populate({
+                path: 'user',
+                match: { userID: req.user.userID },  // Use userID for matching
+                select: 'username',
+                options: { strictPopulate: false },
+            })
+            .populate('routeID')
+            .populate('sessionID');
 
         res.status(200).json(posts);
     } catch (error) {
-        console.error(error);
+        console.log(req.user.userID);
+        console.error("error in getMyPosts", error);
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -197,8 +201,8 @@ exports.getMyPosts = async (req, res) => {
 // Retrieve posts from a specific user
 exports.getUserPosts = async (req, res) => {
     try {
-        const { userId } = req.params;
-        const posts = await Post.find({ user: userId })
+        const { userID } = req.params;
+        const posts = await Post.find({ user: userID })
             .sort({ createdAt: -1 })
             .populate('user', 'username')
             .populate('route')

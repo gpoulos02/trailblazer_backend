@@ -1,15 +1,15 @@
 const mongoose = require('mongoose');
 
 const postSchema = new mongoose.Schema({
-    user: { type: String, ref: 'User', required: true }, // Store userID as a String
+    userID: { type: String, ref: 'User', required: true }, // Store userID as a String
     type: { 
         type: String, 
         enum: ['text', 'route', 'performance'], 
         required: true 
     },
     textContent: { type: String, required: function() { return this.type === 'text'; } },
-    route: { type: Number, ref: 'Route', required: function() { return this.type === 'route'; } },
-    performance: { type: mongoose.Schema.Types.ObjectId, ref: 'Metrics', required: function() { return this.type === 'performance'; } },
+    routeID: { type: String, ref: 'Route', required: function() { return this.type === 'route'; } },
+    sessionID: { type: String, ref: 'Metrics', required: function() { return this.type === 'performance'; } },
     likes: [{ type: String, ref: 'User' }], // Store likes using userID (String)
     comments: [{
         user: { type: String, ref: 'User', required: true }, // Store userID as String

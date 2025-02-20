@@ -3,6 +3,9 @@ const mongoose = require('mongoose');
 const BlueMountainTrail = require('../models/BlueMountainTrail');
 const Chairlift = require('../models/Chairlift');
 const PointOfInterest = require('../models/PointOfInterest');
+const { v4 : uuidv4 } = require('uuid');
+const Route = require('../models/Route');
+
 
 
 exports.findRoutes = async (req, res) => {
@@ -151,6 +154,7 @@ exports.saveRoute = async (req, res) => {
 
         const route = new Route({
             user: req.user.userID, // assumes user ID is stored in req.user by auth middleware
+            routeID: uuidv4(), // Generate a random UUID for routeID
             name,
             trails,
         });

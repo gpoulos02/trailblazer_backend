@@ -37,11 +37,11 @@ const userSchema = new mongoose.Schema({
         ref: 'User'
     }],
     friendRequestsSent: [{
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: 'User'
     }],
     friendRequestsReceived: [{
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: 'User'
     }],
     createdAt: {
