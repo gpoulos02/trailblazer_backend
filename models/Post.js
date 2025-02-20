@@ -9,7 +9,7 @@ const postSchema = new mongoose.Schema({
     },
     textContent: { type: String, required: function() { return this.type === 'text'; } },
     routeID: { type: String, ref: 'Route', required: function() { return this.type === 'route'; } },
-    performance: { type: String, ref: 'Metrics', required: function() { return this.type === 'performance'; } },
+    sessionID: { type: String, ref: 'Metrics', required: function() { return this.type === 'performance'; } },
     likes: [{ type: String, ref: 'User' }], // Store likes using userID (String)
     comments: [{
         user: { type: String, ref: 'User', required: true }, // Store userID as String
