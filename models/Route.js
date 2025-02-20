@@ -1,28 +1,16 @@
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid'); // Import uuid package
 
-const waypointSchema = new mongoose.Schema({
-    latitude: {
-        type: Number,
-        required: true,
-    },
-    longitude: {
-        type: Number,
-        required: true,
-    },
-    elevation: {
-        type: Number,
-        required: true,
-    },
-    timestamp: {
-        type: Date,
-        default: Date.now,
-    }
-});
-
+// You can use the uuidv4 function to generate routeID
 const routeSchema = new mongoose.Schema({
     user: {
         type: String,
         ref: 'User',
+        required: true,
+    },
+    routeID: {
+        type: String,
+        default: uuidv4, // Automatically generate a UUID for routeID
         required: true,
     },
     name: {
@@ -30,10 +18,10 @@ const routeSchema = new mongoose.Schema({
         required: true,
     },
     trails: [{
-        type: Number,
-        ref: 'BlueMountainTrail', // Reference by runID instead of ObjectId
+        type: Number, // Storing ObjectIds of BlueMountainTrail models
+        ref: 'BlueMountainTrail', 
         required: true,
-    }], // Array of runIDs representing the route
+    }], 
     createdAt: {
         type: Date,
         default: Date.now,
