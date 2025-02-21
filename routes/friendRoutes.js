@@ -21,4 +21,14 @@ router.get('/search', authMiddleware, friendController.searchUsers);
 // Unfriend a user
 router.delete('/unfriend/:userID', authMiddleware, friendController.unfriendUser);
 
+// Route to get the userID from the username
+router.get('/getUserID', authMiddleware, friendController.getUserIDFromUsername);
+
+// route to get the username from the userID
+router.get('/getUsername', authMiddleware, friendController.getUsernameFromUserID);
+
+// Route to get the friends of the user
+router.get('/friends', authMiddleware, friendController.viewFriends);
+
+
 module.exports = router;

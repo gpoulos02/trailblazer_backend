@@ -5,17 +5,29 @@ const { sendNotification } = require('../utils/notificationUtils');
 // View Friend Requests
 exports.viewFriendRequests = async (req, res) => {
     try {
-        console.log(req.user); // Add this line
         const user = await User.findOne({ userID: req.user.userID });
 
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        res.status(200).json({ friendRequests: user.friendRequestsReceived });
+        // Fetch usernames based on user IDs in friendRequestsReceived
+        const users = await User.find({
+            userID: { $in: user.friendRequestsReceived }
+        });
+
+        const friendRequests = users.map(user => ({
+            userID: user.userID,
+            username: user.username
+        }));
+
+        console.log("Friend Requests:", friendRequests);
+
+        res.status(200).json({ friendRequests });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 // Send a Friend Request
 exports.sendFriendRequest = async (req, res) => {
@@ -130,8 +142,12 @@ exports.unfriendUser = async (req, res) => {
         const { userID } = req.params;
         const currentUserID = req.user.userID;
 
-        const currentUser = await User.findOne(currentUserID);
-        const otherUser = await User.findOne(userID);
+        console.log("Entered unfriendUser");
+        console.log("Current user ID:", currentUserID);
+        console.log("User ID to unfriend:", userID);
+
+        const currentUser = await User.findOne({ userID: currentUserID });
+        const otherUser = await User.findOne({ userID: userID });
 
         if (!currentUser || !otherUser) {
             return res.status(404).json({ message: "User not found." });
@@ -141,8 +157,12 @@ exports.unfriendUser = async (req, res) => {
             return res.status(400).json({ message: "You are not friends with this user." });
         }
 
-        currentUser.friends = currentUser.friends.filter(id => id !== userID);
-        otherUser.friends = otherUser.friends.filter(id => id !== currentUserID);
+        // Remove the userID from the currentUser's friends list
+        currentUser.friends = currentUser.friends.filter(friendID => friendID !== userID);
+
+        // Remove currentUser's userID from the otherUser's friends list
+        otherUser.friends = otherUser.friends.filter(friendID => friendID !== currentUserID);
+
         await currentUser.save();
         await otherUser.save();
 
@@ -153,27 +173,9 @@ exports.unfriendUser = async (req, res) => {
     }
 };
 
+
 // Search Users with Fuzzy Matching
 exports.searchUsers = async (req, res) => {
     try {
         const { query } = req.query;
-        if (!query) {
-            return res.status(400).json({ message: "Search query is required." });
-        }
-
-        const users = await User.find().select("username firstName lastName _id");
-        const fuse = new Fuse(users, {
-            keys: ["username", "firstName", "lastName"],
-            threshold: 0.3,
-            includeScore: true,
-        });
-
-        const results = fuse.search(query);
-        const matchedUsers = results.map(result => result.item);
-
-        res.status(200).json(matchedUsers);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server error." });
-    }
-};
+ 
