@@ -178,4 +178,100 @@ exports.unfriendUser = async (req, res) => {
 exports.searchUsers = async (req, res) => {
     try {
         const { query } = req.query;
- 
+        
+        console.log("Entered try block");
+        console.log("Received search query:", query);
+        
+        if (!query) {
+            console.log("Query missing, sending 400 response");
+            return res.status(400).json({ message: "Search query is required." });
+        }
+
+        const users = await User.find().select("username firstName lastName _id");
+
+        console.log("Fetched users from DB:", users.length);
+
+        const fuse = new Fuse(users, {
+            keys: ["username", "firstName", "lastName"],
+            threshold: 0.3,
+            includeScore: true,
+        });
+
+        const results = fuse.search(query);
+        const matchedUsers = results.map(result => result.item);
+
+        console.log("Search results:", matchedUsers.length);
+
+        res.status(200).json(matchedUsers);
+    } catch (error) {
+        console.error("Error in searchUsers:", error);
+        res.status(500).json({ message: "Server error.", error: error.toString() });
+    }
+};
+
+exports.getUserIDFromUsername = async (req, res) => {
+    try {
+        const { username } = req.query;
+
+        console.log("Entered try block and username is:", username);
+
+        const user = await User.findOne({ username });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        res.status(200).json({ userID: user.userID });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+};
+
+// Get username by userID
+exports.getUsernameFromUserID = async (req, res) => {
+    try {
+        const { userID } = req.query;
+
+        const user = await User.findOne({ userID });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        res.status(200).json({ username: user.username });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+};
+
+// View Friends (this is a new API endpoint)
+exports.viewFriends = async (req, res) => {
+    try {
+
+        console.log("Entered viewFriends");
+        const user = await User.findOne({ userID: req.user.userID });
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Fetch usernames based on user IDs in friends array
+        const users = await User.find({
+            userID: { $in: user.friends }
+        });
+
+        
+
+        const friends = users.map(user => ({
+            userID: user.userID,
+            username: user.username
+        }));
+
+        console.log("Friends:", friends);
+
+        res.status(200).json({ friends });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
