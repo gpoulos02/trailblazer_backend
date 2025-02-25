@@ -198,6 +198,38 @@ exports.getMyPosts = async (req, res) => {
     }
 };
 
+
+
+
+// Retrieve posts from all friends
+// Retrieve posts from all friends
+exports.getFriendsPosts = async (req, res) => {
+        try {
+            const user = await User.findOne({ userID: req.user.userID }).lean(); // Use lean() to return a plain object
+    
+            if (!user) return res.status(404).json({ message: 'User not found' });
+    
+            const friendIds = user.friends; // No need for populate
+            console.log("Friend IDs:", friendIds);
+    
+            const posts = await Post.find({ userID: { $in: friendIds.map(String) } }) // Ensure they are strings
+                .sort({ createdAt: -1 })
+                .populate('routeID')
+                .populate('sessionID');
+    
+            res.status(200).json(posts);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Server error' });
+        }
+    };
+    
+    
+
+
+
+
+
 // Retrieve posts from a specific user
 exports.getUserPosts = async (req, res) => {
     try {
@@ -217,24 +249,3 @@ exports.getUserPosts = async (req, res) => {
     }
 };
 
-// Retrieve posts from all friends
-exports.getFriendsPosts = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.userId).populate('friends');
-
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        const friendIds = user.friends.map(friend => friend._id);
-
-        const posts = await Post.find({ user: { $in: friendIds } })
-            .sort({ createdAt: -1 })
-            .populate('user', 'username')
-            .populate('route')
-            .populate('performance');
-
-        res.status(200).json(posts);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
