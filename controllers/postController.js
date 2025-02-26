@@ -73,6 +73,9 @@ exports.createRoutePost = async (req, res) => {
 exports.createPerformancePost = async (req, res) => {
     try {
         const { sessionID, title } = req.body; // Get sessionID and title from the request body
+
+        console.log('Session ID:', sessionID);
+
         if (!sessionID) return res.status(400).json({ message: 'Session ID is required' });
 
         // Search for the session using the sessionID field (not Mongo's default _id)
@@ -83,7 +86,7 @@ exports.createPerformancePost = async (req, res) => {
         const post = new Post({
             userID: req.user.userID, // Assuming req.user contains user information
             type: 'performance',
-            performance: sessionID, // Store the sessionID to link the performance post
+            sessionID: sessionID, // Store the sessionID to link the performance post
             title: title // Use the title provided from the front-end
         });
 
@@ -171,8 +174,6 @@ exports.deletePost = async (req, res) => {
 };
 
 ////////////////////////////////////Retreiving User Posts///////////////////////////////////
-
-// Retrieve all posts from the logged-in user
 exports.getMyPosts = async (req, res) => {
     console.log("made it to the get my posts controller");
     try {
@@ -187,8 +188,13 @@ exports.getMyPosts = async (req, res) => {
                 select: 'username',
                 options: { strictPopulate: false },
             })
-            .populate('routeID')
-            .populate('sessionID');
+            .populate('routeID')  // Populate the route
+            .populate({
+                path: 'sessionID',  // Populate sessionID with custom UUID string
+                model: 'Metrics',  // Metrics model for performance data
+                foreignField: 'sessionID',  // Explicitly match `sessionID`
+                localField: 'sessionID'  // Match using sessionID UUID as string
+            });
 
         res.status(200).json(posts);
     } catch (error) {
@@ -198,43 +204,43 @@ exports.getMyPosts = async (req, res) => {
     }
 };
 
+
+
+
+
+// Retrieve posts from all friends
+// Retrieve posts from all friends
+exports.getFriendsPosts = async (req, res) => {
+        try {
+            const user = await User.findOne({ userID: req.user.userID }).lean(); // Use lean() to return a plain object
+    
+            if (!user) return res.status(404).json({ message: 'User not found' });
+    
+            const friendIds = user.friends; // No need for populate
+            console.log("Friend IDs:", friendIds);
+    
+            const posts = await Post.find({ userID: { $in: friendIds.map(String) } }) // Ensure they are strings
+                .sort({ createdAt: -1 })
+                .populate('routeID')
+                .populate('sessionID');
+    
+            res.status(200).json(posts);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Server error' });
+        }
+    };
+    
+    
+
+
+
+
+
 // Retrieve posts from a specific user
 exports.getUserPosts = async (req, res) => {
     try {
         const { userID } = req.params;
         const posts = await Post.find({ user: userID })
             .sort({ createdAt: -1 })
-            .populate('user', 'username')
-            .populate('route')
-            .populate('performance');
-
-        if (!posts.length) return res.status(404).json({ message: 'No posts found for this user' });
-
-        res.status(200).json(posts);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
-
-// Retrieve posts from all friends
-exports.getFriendsPosts = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.userId).populate('friends');
-
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        const friendIds = user.friends.map(friend => friend._id);
-
-        const posts = await Post.find({ user: { $in: friendIds } })
-            .sort({ createdAt: -1 })
-            .populate('user', 'username')
-            .populate('route')
-            .populate('performance');
-
-        res.status(200).json(posts);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
+            .populate('user', 'u

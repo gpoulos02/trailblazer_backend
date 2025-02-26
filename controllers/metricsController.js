@@ -50,7 +50,7 @@ exports.getSessionDates = async (req, res) => {
             .exec();
 
         const sessionDates = sessions.map(session => ({
-            id: session._id,
+            id: session.sessionID,
             date: session.createdAt,
             runID: session.runID, // Include runID in response
         }));
@@ -66,23 +66,29 @@ exports.getSessionDates = async (req, res) => {
 exports.getSessionById = async (req, res) => {
     try {
         const { id } = req.params;
-        const session = await Metrics.findById(id).select('-__v'); // Exclude version key
+        const session = await Metrics.findOne({ sessionID: id }).select('-__v'); // Find by sessionID
+
+        console.log("session: ", session);
+
 
         if (!session || session.userID !== req.user.userID) {
             return res.status(404).json({ message: 'Session not found' });
         }
 
         res.json({
-            id: session._id,
+            sessionID: session.sessionID, // Use sessionID instead of _id
             runID: session.runID, // Include runID
             sessionData: session.sessionData,
             createdAt: session.createdAt,
         });
+
+        console.log("session details: ", session);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 exports.deleteSession = async (req, res) => {
     try {
@@ -245,14 +251,4 @@ exports.getMetricsByUserId = async (req, res) => {
         // Return the found metrics
         res.status(200).json(metrics);
     } catch (error) {
-        console.error('Error occurred:', error);  // Log the error details
-        res.status(500).json({ message: 'Server error' });
-    }
-};
-
-
-
-
-
-
-module.exports = exports;
+        console.error('Error occurred:', error);  // Log the error detai
