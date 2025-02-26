@@ -34,39 +34,46 @@ exports.createTextPost = async (req, res) => {
 };
 
 exports.createRoutePost = async (req, res) => {
-    try {
-        const { routeID, title } = req.body;
+    try {
+        const { routeID, title } = req.body;
 
-        console.log("made it to the post controller");
-        console.log('Creating route post:', routeID, title);
+        // Log the received body
+        console.log("Received request body:", req.body);
 
-        // Validate request body
-        if (!routeID) {
-            return res.status(400).json({ message: 'Route ID is required' });
-        }
-        if (!title) {
-            return res.status(400).json({ message: 'Title is required for a post' });
-        }
-        
-        if (!req.user || !req.user.userID) {
-            return res.status(401).json({ message: 'Unauthorized: User ID is missing' });
-        }
+        // Log routeID to check if it is properly received
+        console.log('Creating route post with routeID:', routeID);
 
-        // Create post
-        const post = new Post({
-            userID: req.user.userID, // Store userID as a String
-            type: 'route',
-            route: routeID,
-            title: title, // Include title in the post
-        });
+        // Validate request body
+        if (!routeID) {
+            return res.status(400).json({ message: 'Route ID is required' });
+        }
+        if (!title) {
+            return res.status(400).json({ message: 'Title is required for a post' });
+        }
 
-        await post.save();
+        // Ensure the user is authenticated
+        if (!req.user || !req.user.userID) {
+            return res.status(401).json({ message: 'Unauthorized: User ID is missing' });
+        }
 
-        res.status(201).json({ message: 'Route post created successfully', post });
-    } catch (error) {
-        console.error('Error creating route post:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
+        // Create the post object manually, assigning routeID explicitly as a string
+        const post = new Post({
+            userID: req.user.userID,
+            type: 'route',
+            routeID: String(routeID), // Forcefully set routeID to String
+            title: title
+        });
+
+        console.log('Post data:', post); // Log the full post data before saving
+
+        // Save the post
+        await post.save();
+
+        res.status(201).json({ message: 'Route post created successfully', post });
+    } catch (error) {
+        console.error('Error creating route post:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
 // Create a performance post
@@ -209,7 +216,7 @@ exports.getMyPosts = async (req, res) => {
                 select: 'username',
                 options: { strictPopulate: false },
             })
-            .populate('routeID')  // Populate the route
+//             .populate('routeID')  // Populate the route
             .populate({
                 path: 'sessionID',  // Populate sessionID with custom UUID string
                 model: 'Metrics',  // Metrics model for performance data
