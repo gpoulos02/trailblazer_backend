@@ -124,6 +124,27 @@ exports.likePost = async (req, res) => {
     }
 };
 
+exports.unlikePost = async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.postId);
+        if (!post) return res.status(404).json({ message: 'Post not found' });
+
+        const likeIndex = post.likes.indexOf(req.user.userId);
+        if (likeIndex === -1) {
+            return res.status(400).json({ message: 'You have not liked this post' });
+        }
+
+        post.likes.splice(likeIndex, 1);
+        await post.save();
+
+        res.status(200).json({ message: 'Post unliked', post });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
 // Comment on a post 
 exports.commentOnPost = async (req, res) => {
     try {
@@ -203,9 +224,6 @@ exports.getMyPosts = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-
-
-
 
 
 // Retrieve posts from all friends
