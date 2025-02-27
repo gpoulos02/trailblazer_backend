@@ -56,7 +56,7 @@ exports.createRoutePost = async (req, res) => {
         const post = new Post({
             userID: req.user.userID, // Store userID as a String
             type: 'route',
-            route: routeID,
+            routeID: routeID,
             title: title, // Include title in the post
         });
 
@@ -101,28 +101,40 @@ exports.createPerformancePost = async (req, res) => {
 
 //////////////////////////Interacting with Posts//////////////////////////////
 
-// Like a post 
 exports.likePost = async (req, res) => {
-    try {
-        const post = await Post.findById(req.params.postId).populate('user', 'username');
-        if (!post) return res.status(404).json({ message: 'Post not found' });
+    try {
+        console.log("Received request to like post:", req.params.postId);
+        console.log("User making the request:", req.user.userId);
 
-        if (post.likes.includes(req.user.userId)) {
-            return res.status(400).json({ message: 'Already liked this post' });
-        }
+        // Fetch post from the database
+        const post = await Post.findOne({ postId: req.params.postId }).populate('userID', 'username');
 
-        post.likes.push(req.user.userId);
-        await post.save();
+        if (!post) {
+            console.log("Post not found with ID:", req.params.postId);
+            return res.status(404).json({ message: 'Post not found' });
+        }
 
-        // 🚀 **Trigger Post Like Notification**
-        await sendNotification(post.user._id, 'post_like', req.user.username);
+        // Check if the user has already liked the post
+        if (post.likes.includes(req.user.userId)) {
+            console.log("User has already liked the post:", req.user.userId);
+            return res.status(400).json({ message: 'Already liked this post' });
+        }
 
-        res.status(200).json({ message: 'Post liked', post });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
+        // Add the like
+        post.likes.push(req.user.userId);
+        await post.save();
+        console.log("Post liked successfully. Likes:", post.likes.length);
+
+        // 🚀 **Trigger Post Like Notification**
+        // await sendNotification(post.user._id, 'post_like', req.user.username);
+
+        res.status(200).json({ message: 'Post liked', post });
+    } catch (error) {
+        console.error("Error while liking the post:", error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
+
 
 exports.unlikePost = async (req, res) => {
     try {
@@ -196,34 +208,37 @@ exports.deletePost = async (req, res) => {
 
 ////////////////////////////////////Retreiving User Posts///////////////////////////////////
 exports.getMyPosts = async (req, res) => {
-    console.log("made it to the get my posts controller");
-    try {
-        console.log("made it to the try block");
+    console.log("Made it to the getMyPosts controller");
 
-        const posts = await Post.find({ userID: req.user.userID })
-            .sort({ createdAt: -1 })
-            .lean()
-            .populate({
-                path: 'user',
-                match: { userID: req.user.userID },  // Use userID for matching
-                select: 'username',
-                options: { strictPopulate: false },
-            })
-            .populate('routeID')  // Populate the route
-            .populate({
-                path: 'sessionID',  // Populate sessionID with custom UUID string
-                model: 'Metrics',  // Metrics model for performance data
-                foreignField: 'sessionID',  // Explicitly match `sessionID`
-                localField: 'sessionID'  // Match using sessionID UUID as string
-            });
+    try {
+        console.log("Made it to the try block");
+        console.log("User ID from request:", req.user.userID);
 
-        res.status(200).json(posts);
-    } catch (error) {
-        console.log(req.user.userID);
-        console.error("error in getMyPosts", error);
-        res.status(500).json({ message: 'Server error' });
-    }
+        const posts = await Post.find({ userID: req.user.userID })
+            .sort({ createdAt: -1 })
+            .lean()
+            .populate({
+                path: 'user',
+                match: { userID: req.user.userID },
+                select: 'username',
+                options: { strictPopulate: false },
+            })
+            .populate({
+                path: 'sessionID',
+                model: 'Metrics',
+                foreignField: 'sessionID',
+                localField: 'sessionID',
+            });
+
+        console.log("Posts retrieved:", posts);
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error("Error in getMyPosts", error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
+
+
 
 
 // Retrieve posts from all friends
