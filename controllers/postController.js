@@ -91,11 +91,9 @@ exports.createPerformancePost = async (req, res) => {
 // Liking a Post
 exports.likePost = async (req, res) => {
     try {
-        
         console.log("User making the request:", req.user.userID);
         const postID = String(req.params.postID);
         console.log("Received request to like post:", postID);
-
 
         // Find the post by postID
         const post = await Post.findOne({ postID: postID });
@@ -112,22 +110,48 @@ exports.likePost = async (req, res) => {
         // Add the user's ID to the likes array
         post.likes.push(req.user.userID);
 
-        // Temporarily remove the routeID for validation to skip
-        const { routeID, ...postWithoutRouteID } = post.toObject();
+        // Update the like count
+        post.likeCount = post.likes.length;
 
-        // Save the post without the routeID field
-        await Post.updateOne({ postID: req.params.postID }, postWithoutRouteID);
+        // Save the updated post
+        await post.save();
 
-        // Log the post object to check if it is correct
         console.log("Post liked successfully:", post);
 
-        // Send the correct response
-        res.status(200).json({ message: 'Post liked', post });
+        // Send the updated like count to the frontend
+        res.status(200).json({ message: 'Post liked', likeCount: post.likeCount });
     } catch (error) {
         console.error("Error in liking post:", error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+exports.getLikeCount = async (req, res) => {
+    try {
+        const postID = String(req.params.postID);
+    
+        console.log('Fetching like count for postId:', postID);  // Debugging line
+    
+        // Find the post by ID
+        const post = await Post.findOne({ postID: postID });
+    
+        if (!post) {
+          return res.status(404).json({ error: 'Post not found' });
+        }
+    
+        // Return the like count
+        const likeCount = post.likes.length;
+        console.log('Like count for postId:', postID, 'is:', likeCount);  // Debugging line
+    
+        res.json({ likeCount });
+    
+      } catch (error) {
+        console.error('Error fetching like count:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+};
+
+
 
 
 // Unliking a Post

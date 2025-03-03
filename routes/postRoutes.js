@@ -18,6 +18,8 @@ router.post('/:postID/like', authMiddleware, postController.likePost);
 // Comment on a post
 router.post('/:postID/comment', authMiddleware, postController.commentOnPost);
 
+router.get('/:postID/getLikeCount', authMiddleware, postController.getLikeCount) 
+
 // Delete a post
 router.delete('/:postID', authMiddleware, postController.deletePost);
 
