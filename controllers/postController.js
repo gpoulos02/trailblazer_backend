@@ -39,6 +39,15 @@ exports.createRoutePost = async (req, res) => {
     try {
         const { routeID, title } = req.body;
 
+
+        // Log the received body
+        console.log("Received request body:", req.body);
+
+        // Log routeID to check if it is properly received
+        console.log('Creating route post with routeID:', routeID);
+
+        // Validate request body
+
         if (!routeID) {
             return res.status(400).json({ message: 'Route ID is required' });
         }
@@ -46,20 +55,31 @@ exports.createRoutePost = async (req, res) => {
             return res.status(400).json({ message: 'Title is required for a post' });
         }
 
-        const post = new Post({
-            postID: uuidv4(), // Generate postID
-            userID: req.user.userID,
-            type: 'route',
-            routeID,
-            title
-        });
+const post = new Post({
+    postID: uuidv4(), // Generate postID
+    userID: req.user.userID,
+    type: 'route',
+    routeID: String(routeID), // Forcefully set routeID to String
+    title: title
+});
 
-        await post.save();
-        res.status(201).json({ message: 'Route post created successfully', post });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+// Log the full post data before saving
+console.log('Post data:', post);
+
+try {
+    // Ensure the user is authenticated
+    if (!req.user || !req.user.userID) {
+        return res.status(401).json({ message: 'Unauthorized: User ID is missing' });
     }
+
+    // Save the post
+    await post.save();
+
+    res.status(201).json({ message: 'Route post created successfully', post });
+} catch (error) {
+    console.error('Error creating route post:', error);
+    res.status(500).json({ message: 'Error creating route post', error: error.message });
+}
 };
 
 // Creating Performance Post
@@ -231,31 +251,27 @@ exports.getMyPosts = async (req, res) => {
             .lean()
             .populate({
                 path: 'user',
-                match: { userID: req.user.userID },
+                match: { userID: req.user.userID },  // Use userID for matching
                 select: 'username',
                 options: { strictPopulate: false },
             })
             .populate({
-                path: 'sessionID',
-                model: 'Metrics',
-                foreignField: 'sessionID',
-                localField: 'sessionID',
+                path: 'sessionID',  // Populate sessionID with custom UUID string
+                model: 'Metrics',  // Metrics model for performance data
+                foreignField: 'sessionID',  // Explicitly match `sessionID`
+                localField: 'sessionID'  // Match using sessionID UUID as string
             })
             .select('postID userID type title textContent performance route createdAt likes comments');
 
-            // Log the posts to verify the structure
-            console.log('Posts fetched:', posts);
+        // Log the posts to verify the structure
+        console.log('Posts fetched:', posts);
 
-            res.status(200).json(posts);
-
-
+        res.status(200).json(posts);
     } catch (error) {
         console.error("Error in getMyPosts", error);
         res.status(500).json({ message: 'Server error' });
     }
 };
-
-
 
 
 // Retrieve posts from all friends
