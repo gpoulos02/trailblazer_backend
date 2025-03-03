@@ -221,20 +221,36 @@ exports.getRunIDByRunName = async (req, res) => {
 
 
 exports.getRunNameByRunID = async (req, res) => {
+    console.log("Made it to the getRunNameByRunID controller");
+
     try {
-        const { runID } = req.query;  // Get runID from query parameter
+        let { runID } = req.query;  // Get runID from query parameter
+        console.log("RunID from query:", runID);
 
         if (!runID) {
+            console.log("runID is missing in the request");
             return res.status(400).json({ message: 'runID is required' });
+        }
+
+        // Convert runID to a number for query
+        runID = Number(runID);
+        console.log("Converted runID to number:", runID);
+
+        // Check if the conversion was successful
+        if (isNaN(runID)) {
+            console.log("Invalid runID format, not a number");
+            return res.status(400).json({ message: 'Invalid runID format' });
         }
 
         // Find the trail by runID
         const trail = await BlueMountainTrail.findOne({ runID });
 
         if (!trail) {
+            console.log(`No trail found for runID: ${runID}`);
             return res.status(404).json({ message: 'Trail not found for the provided runID' });
         }
 
+        console.log("Trail found:", trail);
         // Return the runName (or trail name) from the BlueMountainTrail model
         res.json({ runName: String(trail.runName) });
     } catch (error) {
@@ -242,6 +258,8 @@ exports.getRunNameByRunID = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+
 
 //get all route names 
 // get all route names

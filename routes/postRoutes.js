@@ -13,13 +13,15 @@ router.post('/route', authMiddleware, postController.createRoutePost);
 router.post('/performance', authMiddleware, postController.createPerformancePost);
 
 // Like a post
-router.post('/:postId/like', authMiddleware, postController.likePost);
+router.post('/:postID/like', authMiddleware, postController.likePost);
 
 // Comment on a post
-router.post('/:postId/comment', authMiddleware, postController.commentOnPost);
+router.post('/:postID/comment', authMiddleware, postController.commentOnPost);
+
+router.get('/:postID/getLikeCount', authMiddleware, postController.getLikeCount) 
 
 // Delete a post
-router.delete('/:postId', authMiddleware, postController.deletePost);
+router.delete('/:postID', authMiddleware, postController.deletePost);
 
 // Get all posts from the logged-in user
 router.get('/my-posts', authMiddleware, postController.getMyPosts);

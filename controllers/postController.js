@@ -3,39 +3,42 @@ const Route = require('../models/Route');
 const Metrics = require('../models/Metrics');
 const User = require('../models/User');
 const { sendNotification } = require('../utils/notificationUtils');
-const mongoose = require('mongoose'); 
+const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
+
 
 
 
 ///////////////////////Creating Posts//////////////////////
 // Create a text post
+// Creating Text Post
 exports.createTextPost = async (req, res) => {
-    try {
-        const { title, textContent } = req.body;
-        if (!textContent) return res.status(400).json({ message: 'Text content is required' });
-        if (!title) return res.status(400).json({ message: 'Title is required for a post' });
+    try {
+        const { title, textContent } = req.body;
+        if (!textContent) return res.status(400).json({ message: 'Text content is required' });
+        if (!title) return res.status(400).json({ message: 'Title is required for a post' });
 
-        console.log("made it to the text post controller");
-        console.log('Creating text post:', textContent);
+        const post = new Post({
+            postID: uuidv4(), // Generate postID
+            userID: req.user.userID,
+            type: 'text',
+            title,
+            textContent
+        });
 
-        const post = new Post({
-            userID: req.user.userID,
-            type: 'text',
-            title,
-            textContent
-        });
-
-        await post.save();
-        res.status(201).json({ message: 'Text post created', post });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
+        await post.save();
+        res.status(201).json({ message: 'Text post created', post });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
+// Creating Route Post
 exports.createRoutePost = async (req, res) => {
     try {
         const { routeID, title } = req.body;
+
 
         // Log the received body
         console.log("Received request body:", req.body);
@@ -44,6 +47,7 @@ exports.createRoutePost = async (req, res) => {
         console.log('Creating route post with routeID:', routeID);
 
         // Validate request body
+
         if (!routeID) {
             return res.status(400).json({ message: 'Route ID is required' });
         }
@@ -51,92 +55,132 @@ exports.createRoutePost = async (req, res) => {
             return res.status(400).json({ message: 'Title is required for a post' });
         }
 
-        // Ensure the user is authenticated
-        if (!req.user || !req.user.userID) {
-            return res.status(401).json({ message: 'Unauthorized: User ID is missing' });
-        }
+const post = new Post({
+    postID: uuidv4(), // Generate postID
+    userID: req.user.userID,
+    type: 'route',
+    routeID: String(routeID), // Forcefully set routeID to String
+    title: title
+});
 
-        // Create the post object manually, assigning routeID explicitly as a string
+// Log the full post data before saving
+console.log('Post data:', post);
+
+try {
+    // Ensure the user is authenticated
+    if (!req.user || !req.user.userID) {
+        return res.status(401).json({ message: 'Unauthorized: User ID is missing' });
+    }
+
+    // Save the post
+    await post.save();
+
+    res.status(201).json({ message: 'Route post created successfully', post });
+} catch (error) {
+    console.error('Error creating route post:', error);
+    res.status(500).json({ message: 'Error creating route post', error: error.message });
+}
+};
+
+// Creating Performance Post
+exports.createPerformancePost = async (req, res) => {
+    try {
+        const { sessionID, title } = req.body;
+
+        if (!sessionID) return res.status(400).json({ message: 'Session ID is required' });
+
+        const session = await Metrics.findOne({ sessionID: sessionID });
+        if (!session) return res.status(404).json({ message: 'Session data not found' });
+
         const post = new Post({
+            postID: uuidv4(), // Generate postID
             userID: req.user.userID,
-            type: 'route',
-            routeID: String(routeID), // Forcefully set routeID to String
-            title: title
+            type: 'performance',
+            sessionID,
+            title
         });
 
-        console.log('Post data:', post); // Log the full post data before saving
-
-        // Save the post
         await post.save();
-
-        res.status(201).json({ message: 'Route post created successfully', post });
+        res.status(201).json({ message: 'Performance post created', post });
     } catch (error) {
-        console.error('Error creating route post:', error);
+        console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };
 
-// Create a performance post
-exports.createPerformancePost = async (req, res) => {
-    try {
-        const { sessionID, title } = req.body; // Get sessionID and title from the request body
-
-        console.log('Session ID:', sessionID);
-
-        if (!sessionID) return res.status(400).json({ message: 'Session ID is required' });
-
-        // Search for the session using the sessionID field (not Mongo's default _id)
-        const session = await Metrics.findOne({ sessionID: sessionID });
-        if (!session) return res.status(404).json({ message: 'Session data not found' });
-
-        // Create a new post using the found session data
-        const post = new Post({
-            userID: req.user.userID, // Assuming req.user contains user information
-            type: 'performance',
-            sessionID: sessionID, // Store the sessionID to link the performance post
-            title: title // Use the title provided from the front-end
-        });
-
-        await post.save();
-        res.status(201).json({ message: 'Performance post created', post });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
-
-
-//////////////////////////Interacting with Posts//////////////////////////////
-
-// Like a post 
+// Liking a Post
 exports.likePost = async (req, res) => {
-    try {
-        const post = await Post.findById(req.params.postId).populate('user', 'username');
-        if (!post) return res.status(404).json({ message: 'Post not found' });
+    try {
+        console.log("User making the request:", req.user.userID);
+        const postID = String(req.params.postID);
+        console.log("Received request to like post:", postID);
 
-        if (post.likes.includes(req.user.userId)) {
-            return res.status(400).json({ message: 'Already liked this post' });
-        }
+        // Find the post by postID
+        const post = await Post.findOne({ postID: postID });
 
-        post.likes.push(req.user.userId);
-        await post.save();
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
 
-        // 🚀 **Trigger Post Like Notification**
-        await sendNotification(post.user._id, 'post_like', req.user.username);
+        // Check if the user has already liked the post
+        if (post.likes.includes(req.user.userID)) {
+            return res.status(400).json({ message: 'Already liked this post' });
+        }
 
-        res.status(200).json({ message: 'Post liked', post });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
+        // Add the user's ID to the likes array
+        post.likes.push(req.user.userID);
+
+        // Update the like count
+        post.likeCount = post.likes.length;
+
+        // Save the updated post
+        await post.save();
+
+        console.log("Post liked successfully:", post);
+
+        // Send the updated like count to the frontend
+        res.status(200).json({ message: 'Post liked', likeCount: post.likeCount });
+    } catch (error) {
+        console.error("Error in liking post:", error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
+exports.getLikeCount = async (req, res) => {
+    try {
+        const postID = String(req.params.postID);
+    
+        console.log('Fetching like count for postId:', postID);  // Debugging line
+    
+        // Find the post by ID
+        const post = await Post.findOne({ postID: postID });
+    
+        if (!post) {
+          return res.status(404).json({ error: 'Post not found' });
+        }
+    
+        // Return the like count
+        const likeCount = post.likes.length;
+        console.log('Like count for postId:', postID, 'is:', likeCount);  // Debugging line
+    
+        res.json({ likeCount });
+    
+      } catch (error) {
+        console.error('Error fetching like count:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+};
+
+
+
+
+// Unliking a Post
 exports.unlikePost = async (req, res) => {
     try {
-        const post = await Post.findById(req.params.postId);
+        const post = await Post.findOne({ postID: req.params.postID });
         if (!post) return res.status(404).json({ message: 'Post not found' });
 
-        const likeIndex = post.likes.indexOf(req.user.userId);
+        const likeIndex = post.likes.indexOf(req.user.userID);
         if (likeIndex === -1) {
             return res.status(400).json({ message: 'You have not liked this post' });
         }
@@ -151,85 +195,82 @@ exports.unlikePost = async (req, res) => {
     }
 };
 
-
-// Comment on a post 
+// Comment on Post
 exports.commentOnPost = async (req, res) => {
-    try {
-        const { content } = req.body;
-        if (!content) return res.status(400).json({ message: 'Comment content is required' });
+    try {
+        const { content } = req.body;
+        if (!content) return res.status(400).json({ message: 'Comment content is required' });
 
-        const post = await Post.findById(req.params.postId).populate('user', 'username');
-        if (!post) return res.status(404).json({ message: 'Post not found' });
+        const post = await Post.findOne({ postID: req.params.postID }).populate('userID', 'username');
+        if (!post) return res.status(404).json({ message: 'Post not found' });
 
-        const comment = {
-            user: req.user.userId,
-            content,
-            createdAt: Date.now()
-        };
+        const comment = {
+            user: req.user.userID,
+            content,
+            createdAt: Date.now()
+        };
 
-        post.comments.push(comment);
-        await post.save();
+        post.comments.push(comment);
+        await post.save();
 
-        // 🚀 **Trigger Comment Notification**
-        await sendNotification(post.user._id, 'comment', req.user.username);
-
-        res.status(200).json({ message: 'Comment added', post });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
+        res.status(200).json({ message: 'Comment added', post });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
-/////////////////////////////// Delete a post//////////////////
-
-
+// Delete Post
 exports.deletePost = async (req, res) => {
-    try {
-        const post = await Post.findById(req.params.postId);
-        if (!post) return res.status(404).json({ message: 'Post not found' });
+    try {
+        const post = await Post.findOne({ postID: req.params.postID });
+        if (!post) return res.status(404).json({ message: 'Post not found' });
 
-        // Ensure the user owns the post
-        if (post.user.toString() !== req.user.userId) {
-            return res.status(403).json({ message: 'Unauthorized' });
-        }
+        if (post.userID !== req.user.userID) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
 
-        await Post.findByIdAndDelete(req.params.postId);
-        res.status(200).json({ message: 'Post deleted' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
+        await Post.deleteOne({ postID: req.params.postID });
+        res.status(200).json({ message: 'Post deleted' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
 ////////////////////////////////////Retreiving User Posts///////////////////////////////////
 exports.getMyPosts = async (req, res) => {
-    console.log("made it to the get my posts controller");
-    try {
-        console.log("made it to the try block");
+    console.log("Made it to the getMyPosts controller");
 
-        const posts = await Post.find({ userID: req.user.userID })
-            .sort({ createdAt: -1 })
-            .lean()
-            .populate({
-                path: 'user',
-                match: { userID: req.user.userID },  // Use userID for matching
-                select: 'username',
-                options: { strictPopulate: false },
-            })
-//             .populate('routeID')  // Populate the route
-            .populate({
-                path: 'sessionID',  // Populate sessionID with custom UUID string
-                model: 'Metrics',  // Metrics model for performance data
-                foreignField: 'sessionID',  // Explicitly match `sessionID`
-                localField: 'sessionID'  // Match using sessionID UUID as string
-            });
+    try {
+        console.log("Made it to the try block");
+        console.log("User ID from request:", req.user.userID);
 
-        res.status(200).json(posts);
-    } catch (error) {
-        console.log(req.user.userID);
-        console.error("error in getMyPosts", error);
-        res.status(500).json({ message: 'Server error' });
-    }
+        const posts = await Post.find({ userID: req.user.userID })
+            .sort({ createdAt: -1 })
+            .lean()
+            .populate({
+                path: 'user',
+                match: { userID: req.user.userID },  // Use userID for matching
+                select: 'username',
+                options: { strictPopulate: false },
+            })
+            .populate({
+                path: 'sessionID',  // Populate sessionID with custom UUID string
+                model: 'Metrics',  // Metrics model for performance data
+                foreignField: 'sessionID',  // Explicitly match `sessionID`
+                localField: 'sessionID'  // Match using sessionID UUID as string
+            })
+            .select('postID userID type title textContent performance route createdAt likes comments');
+
+        // Log the posts to verify the structure
+        console.log('Posts fetched:', posts);
+
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error("Error in getMyPosts", error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
 
