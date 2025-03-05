@@ -30,5 +30,8 @@ router.get('/getUsername', authMiddleware, friendController.getUsernameFromUserI
 // Route to get the friends of the user
 router.get('/friends', authMiddleware, friendController.viewFriends);
 
+// Route to check for pending friend requests
+router.get('/pending-requests', authMiddleware, friendController.checkPendingRequests); 
+
 
 module.exports = router;

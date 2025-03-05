@@ -275,3 +275,54 @@ exports.viewFriends = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+// Checking Pending Friend Requests
+exports.checkPendingRequests = async (req, res) => {
+    try {
+        const userId = req.user.userID;  // Get the userID from the JWT token
+        console.log("Checking pending requests for user:", userId);
+
+        // Find the user by their userID (stored as a string)
+        const user = await User.findOne({ userID: userId });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Get the count of pending friend requests
+        const pendingRequestsCount = user.friendRequestsReceived.length;
+
+        if (pendingRequestsCount === 0) {
+            return res.status(200).json({ pendingRequestsCount: 0 });  // No pending requests
+        }
+
+        // If there are pending requests, get all users who sent the requests
+        const usersWithPendingRequests = await User.find({
+            userID: { $in: user.friendRequestsReceived }
+        });
+
+        // Prepare the data to send back
+        const pendingRequests = usersWithPendingRequests.map(user => ({
+            userID: user.userID,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName
+        }));
+
+        // Return the count of pending requests (limit it to 9 if greater than 9)
+        const response = {
+            pendingRequestsCount: pendingRequestsCount > 9 ? 9 : pendingRequestsCount,
+            pendingRequests: pendingRequests  // List of pending requests
+        };
+
+        console.log("Pending requests:", pendingRequests);
+
+        // Send back the count and the list of users with pending friend requests
+        res.status(200).json(response);
+    } catch (error) {
+        console.error("Error checking pending friend requests:", error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+
