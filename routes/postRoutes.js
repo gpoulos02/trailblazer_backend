@@ -15,6 +15,9 @@ router.post('/performance', authMiddleware, postController.createPerformancePost
 // Like a post
 router.post('/:postID/like', authMiddleware, postController.likePost);
 
+//Unlike a post 
+router.post('/:postID/unlike', authMiddleware, postController.unlikePost);
+
 // Comment on a post
 router.post('/:postID/comment', authMiddleware, postController.commentOnPost);
 
