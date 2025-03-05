@@ -39,13 +39,19 @@ exports.createRoutePost = async (req, res) => {
     try {
         const { routeID, title } = req.body;
 
+        console.log("DEBUG: Received request to create route post");
+        console.log("DEBUG: Request body:", req.body);
+
         if (!routeID) {
+            console.log("DEBUG: Missing routeID");
             return res.status(400).json({ message: 'Route ID is required' });
         }
         if (!title) {
+            console.log("DEBUG: Missing title");
             return res.status(400).json({ message: 'Title is required for a post' });
         }
 
+        // Debug the creation of the post object
         const post = new Post({
             postID: uuidv4(), // Generate postID
             userID: req.user.userID,
@@ -54,13 +60,23 @@ exports.createRoutePost = async (req, res) => {
             title
         });
 
+        console.log("DEBUG: Post object created:", post);
+
+        // Debug the saving process before saving
+        console.log("DEBUG: Attempting to save post to database...");
+
         await post.save();
+
+        // Debug the success after saving
+        console.log("DEBUG: Post saved successfully with ID:", post.postID);
+
         res.status(201).json({ message: 'Route post created successfully', post });
     } catch (error) {
-        console.error(error);
+        console.error("DEBUG: Server error while creating route post:", error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 // Creating Performance Post
 exports.createPerformancePost = async (req, res) => {
@@ -243,23 +259,25 @@ exports.getMyPosts = async (req, res) => {
     try {
         console.log("Made it to the try block");
         console.log("User ID from request:", req.user.userID);
+        //console.log(`Fetched posts for user ${req.user.userID}:`, posts);
+
 
         const posts = await Post.find({ userID: req.user.userID })
             .sort({ createdAt: -1 })
             .lean()
-            .select('postID userID type title textContent performance route createdAt likes comments');
+            .select('postID userID type title textContent performance routeID createdAt likes comments');
 
         console.log(`Fetched ${posts.length} posts for user ${req.user.userID}`);
 
         // Manually populate the session data for each post
         const postsWithMetrics = await Promise.all(posts.map(async (post) => {
-            console.log(`Fetching session data for post ${post.postID} with sessionID ${post.sessionID}`);
+            //console.log(`Fetching session data for post ${post.postID} with sessionID ${post.sessionID}`);
             
             // Fetch the metrics data based on sessionID
             const session = await Metrics.findOne({ sessionID: post.sessionID }).select('-__v');
             
             if (session) {
-                console.log(`Session found for post ${post.postID}:`, session);
+                //console.log(`Session found for post ${post.postID}:`, session);
                 post.sessionData = {
                     sessionID: session.sessionID,
                     runID: session.runID,
@@ -267,7 +285,7 @@ exports.getMyPosts = async (req, res) => {
                     createdAt: session.createdAt
                 };
             } else {
-                console.log(`No session found for post ${post.postID} with sessionID ${post.sessionID}`);
+                //console.log(`No session found for post ${post.postID} with sessionID ${post.sessionID}`);
                 post.sessionData = null; // If no session found, set sessionData as null
             }
             
@@ -275,7 +293,7 @@ exports.getMyPosts = async (req, res) => {
         }));
 
         // Log the posts to verify the structure
-        console.log('Posts with metrics:', postsWithMetrics);
+        //console.log('Posts with metrics:', postsWithMetrics);
 
         res.status(200).json(postsWithMetrics);
 
@@ -316,22 +334,33 @@ exports.getFriendsPosts = async (req, res) => {
 
 
 // Retrieve posts from a specific user
-exports.getUserPosts = async (req, res) => {
-    try {
-        const { userID } = req.params;
-        const posts = await Post.find({ user: userID })
-            .sort({ createdAt: -1 })
-            .populate('user', 'username')
-            .populate('route')
-            .populate('performance');
+exports.getAllPosts = async (req, res) => {
+    console.log("Made it to the getAllPosts controller");
 
-        if (!posts.length) return res.status(404).json({ message: 'No posts found for this user' });
+    try {
+        // Fetch all posts for the current user
+        const posts = await Post.find({ userID: req.user.userID })
+            .sort({ createdAt: -1 })  // Sort posts by creation date
+            .lean()  // Convert to plain JavaScript objects
+            .select('postID userID type title routeID sessionID createdAt likes comments textContent');
 
-        res.status(200).json(posts);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
+        // Populate session data for performance posts
+        const postsWithDetails = await Promise.all(posts.map(async (post) => {
+            if (post.type === 'performance') {
+                // Fetch session data for performance posts
+                const session = await Metrics.findOne({ sessionID: post.sessionID }).select('-__v');
+                post.sessionData = session ? session : null; // Attach session data
+            }
+            return post;
+        }));
+
+        console.log("Fetched all posts for the user:", postsWithDetails);
+        res.status(200).json(postsWithDetails);  // Send the posts as the response
+    } catch (error) {
+        console.error("Error in getAllPosts", error);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
+
 
 
