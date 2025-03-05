@@ -3,6 +3,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const roleMiddleware = require('../middleware/roleMiddleware');
 const adminController = require('../controllers/adminController');
+const postController = require("../controllers/postController")
 
 // Approve a Mountain Owner
 router.put('/approve-mountain-owner/:userId', authMiddleware, roleMiddleware(['admin']), adminController.approveMountainOwner);

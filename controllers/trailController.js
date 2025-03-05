@@ -82,7 +82,7 @@ exports.getUniqueDifficulties = async (req, res) => {
 };
 
 // Get trail name by runID
-exports.getRunIDByRunName = async (req, res) => {
+exports.getRunNameByRunID = async (req, res) => {
     try {
         const { runName, mountainID } = req.params;
 
