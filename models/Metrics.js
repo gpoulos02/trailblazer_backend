@@ -11,6 +11,10 @@ const metricsSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    mountainID: {
+        type: Number,
+        required: true
+    },
     runID: {
         type: Number,
         required: true,

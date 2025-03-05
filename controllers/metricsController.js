@@ -25,6 +25,12 @@ exports.saveSession = async (req, res) => {
         .status(400)
         .json({ message: "User not authenticated or userID missing" });
     }
+    
+    // Validate that the mountain exists
+    const mountainExists = await Mountain.findOne({ mountainID });
+        if (!mountainExists) {
+        return res.status(404).json({ message: 'Mountain not found' });
+    }    
 
     // Create a new sessionID for each save (uuid)
     const sessionID = uuidv4();
@@ -146,24 +152,19 @@ exports.getMetricOverview = async (req, res) => {
 };
 
 exports.getRunsByRunID = async (req, res) => {
-  try {
-    const { runID } = req.params;
-    const userID = req.user.userID; // Get userID from the JWT
+    try {
+        const { runID, mountainID } = req.params;
 
-    // Fetch the runs only for the logged-in user
-    const runs = await Metrics.find({ runID, userID }).exec();
+        const runs = await Metrics.find({ runID, mountainID, userID: req.user.userID });
 
-    if (!runs.length) {
-      return res
-        .status(404)
-        .json({ message: "No runs found for this user with the given runID" });
-    }
+        if (!runs.length) {
+            return res.status(404).json({ message: 'No runs found for this runID and mountain.' });
+        }
 
-    res.json(runs);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
+        res.json(runs);
+    } catch (error) {
+        console.error('Error retrieving runs by runID:', error);
+        res.status(500).json({ message: 'Server error' });
 };
 
 exports.getRunsByDate = async (req, res) => {
