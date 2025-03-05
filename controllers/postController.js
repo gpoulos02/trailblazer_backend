@@ -39,15 +39,6 @@ exports.createRoutePost = async (req, res) => {
     try {
         const { routeID, title } = req.body;
 
-
-        // Log the received body
-        console.log("Received request body:", req.body);
-
-        // Log routeID to check if it is properly received
-        console.log('Creating route post with routeID:', routeID);
-
-        // Validate request body
-
         if (!routeID) {
             return res.status(400).json({ message: 'Route ID is required' });
         }
@@ -55,31 +46,20 @@ exports.createRoutePost = async (req, res) => {
             return res.status(400).json({ message: 'Title is required for a post' });
         }
 
-const post = new Post({
-    postID: uuidv4(), // Generate postID
-    userID: req.user.userID,
-    type: 'route',
-    routeID: String(routeID), // Forcefully set routeID to String
-    title: title
-});
+        const post = new Post({
+            postID: uuidv4(), // Generate postID
+            userID: req.user.userID,
+            type: 'route',
+            routeID,
+            title
+        });
 
-// Log the full post data before saving
-console.log('Post data:', post);
-
-try {
-    // Ensure the user is authenticated
-    if (!req.user || !req.user.userID) {
-        return res.status(401).json({ message: 'Unauthorized: User ID is missing' });
+        await post.save();
+        res.status(201).json({ message: 'Route post created successfully', post });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
     }
-
-    // Save the post
-    await post.save();
-
-    res.status(201).json({ message: 'Route post created successfully', post });
-} catch (error) {
-    console.error('Error creating route post:', error);
-    res.status(500).json({ message: 'Error creating route post', error: error.message });
-}
 };
 
 // Creating Performance Post
@@ -177,20 +157,38 @@ exports.getLikeCount = async (req, res) => {
 // Unliking a Post
 exports.unlikePost = async (req, res) => {
     try {
-        const post = await Post.findOne({ postID: req.params.postID });
-        if (!post) return res.status(404).json({ message: 'Post not found' });
+        console.log("User making the request:", req.user.userID);
+        const postID = String(req.params.postID);
+        console.log("Received request to unlike post:", postID);
 
-        const likeIndex = post.likes.indexOf(req.user.userID);
-        if (likeIndex === -1) {
-            return res.status(400).json({ message: 'You have not liked this post' });
+        // Find the post by postID
+        const post = await Post.findOne({ postID: postID });
+
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
         }
 
+        // Check if the user has liked the post
+        const likeIndex = post.likes.indexOf(req.user.userID);
+        if (likeIndex === -1) {
+            return res.status(400).json({ message: 'You have not liked this post yet' });
+        }
+
+        // Remove the user's ID from the likes array
         post.likes.splice(likeIndex, 1);
+
+        // Update the like count
+        post.likeCount = post.likes.length;
+
+        // Save the updated post
         await post.save();
 
-        res.status(200).json({ message: 'Post unliked', post });
+        console.log("Post unliked successfully:", post);
+
+        // Send the updated like count to the frontend
+        res.status(200).json({ message: 'Post unliked', likeCount: post.likeCount });
     } catch (error) {
-        console.error(error);
+        console.error("Error in unliking post:", error);
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -249,24 +247,38 @@ exports.getMyPosts = async (req, res) => {
         const posts = await Post.find({ userID: req.user.userID })
             .sort({ createdAt: -1 })
             .lean()
-            .populate({
-                path: 'user',
-                match: { userID: req.user.userID },  // Use userID for matching
-                select: 'username',
-                options: { strictPopulate: false },
-            })
-            .populate({
-                path: 'sessionID',  // Populate sessionID with custom UUID string
-                model: 'Metrics',  // Metrics model for performance data
-                foreignField: 'sessionID',  // Explicitly match `sessionID`
-                localField: 'sessionID'  // Match using sessionID UUID as string
-            })
             .select('postID userID type title textContent performance route createdAt likes comments');
 
-        // Log the posts to verify the structure
-        console.log('Posts fetched:', posts);
+        console.log(`Fetched ${posts.length} posts for user ${req.user.userID}`);
 
-        res.status(200).json(posts);
+        // Manually populate the session data for each post
+        const postsWithMetrics = await Promise.all(posts.map(async (post) => {
+            console.log(`Fetching session data for post ${post.postID} with sessionID ${post.sessionID}`);
+            
+            // Fetch the metrics data based on sessionID
+            const session = await Metrics.findOne({ sessionID: post.sessionID }).select('-__v');
+            
+            if (session) {
+                console.log(`Session found for post ${post.postID}:`, session);
+                post.sessionData = {
+                    sessionID: session.sessionID,
+                    runID: session.runID,
+                    sessionData: session.sessionData,
+                    createdAt: session.createdAt
+                };
+            } else {
+                console.log(`No session found for post ${post.postID} with sessionID ${post.sessionID}`);
+                post.sessionData = null; // If no session found, set sessionData as null
+            }
+            
+            return post;
+        }));
+
+        // Log the posts to verify the structure
+        console.log('Posts with metrics:', postsWithMetrics);
+
+        res.status(200).json(postsWithMetrics);
+
     } catch (error) {
         console.error("Error in getMyPosts", error);
         res.status(500).json({ message: 'Server error' });
@@ -274,29 +286,29 @@ exports.getMyPosts = async (req, res) => {
 };
 
 
+
 // Retrieve posts from all friends
 // Retrieve posts from all friends
 exports.getFriendsPosts = async (req, res) => {
-        try {
-            const user = await User.findOne({ userID: req.user.userID }).lean(); // Use lean() to return a plain object
-    
-            if (!user) return res.status(404).json({ message: 'User not found' });
-    
-            const friendIds = user.friends; // No need for populate
-            console.log("Friend IDs:", friendIds);
-    
-            const posts = await Post.find({ userID: { $in: friendIds.map(String) } }) // Ensure they are strings
-                .sort({ createdAt: -1 })
-                .populate('routeID')
-                .populate('sessionID');
-    
-            res.status(200).json(posts);
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'Server error' });
-        }
-    };
-    
+            try {
+                const user = await User.findOne({ userID: req.user.userID }).lean(); // Use lean() to return a plain object
+        
+                if (!user) return res.status(404).json({ message: 'User not found' });
+        
+                const friendIds = user.friends; // No need for populate
+                console.log("Friend IDs:", friendIds);
+        
+                const posts = await Post.find({ userID: { $in: friendIds.map(String) } }) // Ensure they are strings
+                    .sort({ createdAt: -1 })
+                    //.populate('routeID')
+                    .populate('sessionID');
+        
+                res.status(200).json(posts);
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ message: 'Server error' });
+            }
+        };
     
 
 
