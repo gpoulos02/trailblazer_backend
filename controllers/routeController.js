@@ -5,6 +5,9 @@ const Chairlift = require('../models/Chairlift');
 const PointOfInterest = require('../models/PointOfInterest');
 const Route = require("../models/Route")
 const User = require('../models/User'); // Ensure you have User model imported
+const { v4 : uuidv4 } = require('uuid');
+const Route = require('../models/Route');
+
 
 
 exports.findRoutes = async (req, res) => {
@@ -243,5 +246,33 @@ exports.deleteRoute = async (req, res) => {
     }
 };
 
+
+
+// get all route names
+exports.getRouteNames = async (req, res) => {
+    try {
+        // Fetch all trails, returning only the 'runName' field
+        const trails = await BlueMountainTrail.find({}, 'runName'); // This queries the 'runName' field
+        //console.log("Fetched trails:", trails); // Debugging: Log the fetched trails
+
+        // If no trails are found, return an empty array with a message
+        if (trails.length === 0) {
+            console.log("No routes found in the database."); // Debugging: Log if no routes are found
+            return res.status(404).json({ message: 'No routes found', routes: [] });
+        }
+
+        // Respond with the trail names in the expected format
+        const trailNames = trails.map(trail => trail.runName);
+        //console.log("Trail names to return:", trailNames); // Debugging: Log the names that will be returned
+
+        res.status(200).json({
+            message: 'Route names retrieved successfully',
+            routes: trailNames // Extract the runName from each trail document
+        });
+    } catch (error) {
+        console.error('Error retrieving route names:', error); // Debugging: Log the error
+        res.status(500).json({ message: 'Error retrieving route names', error: error.message });
+    }
+};
 
 module.exports = exports;

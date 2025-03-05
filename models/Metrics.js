@@ -1,8 +1,14 @@
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid'); // Import UUID
 
 const metricsSchema = new mongoose.Schema({
+    sessionID: {
+        type: String,
+        required: true,
+        default: uuidv4, // Automatically generate a unique sessionID
+    },
     userID: {
-        type: String, // Using userID as a string
+        type: String,
         required: true,
     },
     mountainID: {
@@ -10,7 +16,7 @@ const metricsSchema = new mongoose.Schema({
         required: true
     },
     runID: {
-        type: Number, // Run ID of the ski trail
+        type: Number,
         required: true,
     },
     sessionData: {

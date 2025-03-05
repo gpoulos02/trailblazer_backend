@@ -2,53 +2,68 @@ const User = require('../models/User');
 const Fuse = require('fuse.js');
 const { sendNotification } = require('../utils/notificationUtils');
 
-// View Friend Requests (No changes needed)
+// View Friend Requests
 exports.viewFriendRequests = async (req, res) => {
     try {
-        const user = await User.findById(req.user.userId).populate('friendRequestsReceived', 'username firstName lastName');
+        const user = await User.findOne({ userID: req.user.userID });
 
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        res.status(200).json({ friendRequests: user.friendRequestsReceived });
+        // Fetch usernames based on user IDs in friendRequestsReceived
+        const users = await User.find({
+            userID: { $in: user.friendRequestsReceived }
+        });
+
+        const friendRequests = users.map(user => ({
+            userID: user.userID,
+            username: user.username
+        }));
+
+        console.log("Friend Requests:", friendRequests);
+
+        res.status(200).json({ friendRequests });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };
 
-// Send a Friend Request (Now triggers a notification)
+
+// Send a Friend Request
 exports.sendFriendRequest = async (req, res) => {
     try {
-        const { userId } = req.params;
-        const senderId = req.user.userId;
+        const { userID } = req.params;
+        const senderID = req.user.userID;
 
-        if (senderId === userId) {
+        if (senderID === userID) {
             return res.status(400).json({ message: "You cannot send a friend request to yourself." });
         }
 
-        const sender = await User.findById(senderId);
-        const receiver = await User.findById(userId);
+        const sender = await User.findOne({ userID: senderID });
+        const receiver = await User.findOne({ userID: userID });
 
         if (!receiver) {
             return res.status(404).json({ message: "User not found." });
         }
 
-        if (sender.friends.includes(userId) || receiver.friends.includes(senderId)) {
+        if (!sender){
+            return res.status(404).json({message: "Sender not found."});
+        }
+
+        if (sender.friends.includes(userID) || receiver.friends.includes(senderID)) {
             return res.status(400).json({ message: "You are already friends." });
         }
 
-        if (receiver.friendRequestsReceived.includes(senderId)) {
+        if (receiver.friendRequestsReceived.includes(senderID)) {
             return res.status(400).json({ message: "Friend request already sent." });
         }
 
-        // Update both users' friend request lists
-        sender.friendRequestsSent.push(userId);
-        receiver.friendRequestsReceived.push(senderId);
+        sender.friendRequestsSent.push(userID);
+        receiver.friendRequestsReceived.push(senderID);
         await sender.save();
         await receiver.save();
 
-        // 🚀 **Trigger Friend Request Notification**
-        await sendNotification(userId, 'friend_request', sender.username);
+        // await sendNotification(userID, 'friend_request', sender.username);
 
         res.status(200).json({ message: "Friend request sent." });
     } catch (error) {
@@ -57,35 +72,33 @@ exports.sendFriendRequest = async (req, res) => {
     }
 };
 
-// Accept a Friend Request (Now triggers a notification)
+// Accept a Friend Request
 exports.acceptFriendRequest = async (req, res) => {
     try {
-        const { userId } = req.params;
-        const receiverId = req.user.userId;
+        const { userID } = req.params;
+        const receiverID = req.user.userID;
 
-        const receiver = await User.findById(receiverId);
-        const sender = await User.findById(userId);
+        const receiver = await User.findOne({ userID: receiverID });
+        const sender = await User.findOne({ userID: userID });
 
         if (!receiver || !sender) {
             return res.status(404).json({ message: "User not found." });
         }
 
-        if (!receiver.friendRequestsReceived.includes(userId)) {
+        if (!receiver.friendRequestsReceived.includes(userID)) {
             return res.status(400).json({ message: "No friend request found from this user." });
         }
 
-        // Add each other as friends
-        receiver.friends.push(userId);
-        sender.friends.push(receiverId);
+        receiver.friends.push(userID);
+        sender.friends.push(receiverID);
 
-        // Remove friend request
-        receiver.friendRequestsReceived = receiver.friendRequestsReceived.filter(id => id.toString() !== userId);
-        sender.friendRequestsSent = sender.friendRequestsSent.filter(id => id.toString() !== receiverId);
+        receiver.friendRequestsReceived = receiver.friendRequestsReceived.filter(id => id !== userID);
+        sender.friendRequestsSent = sender.friendRequestsSent.filter(id => id !== receiverID);
+
         await receiver.save();
         await sender.save();
 
-        // 🚀 **Trigger Friend Accept Notification**
-        await sendNotification(userId, 'friend_accept', receiver.username);
+        await sendNotification(userID, 'friend_accept', receiver.username);
 
         res.status(200).json({ message: "Friend request accepted." });
     } catch (error) {
@@ -94,28 +107,25 @@ exports.acceptFriendRequest = async (req, res) => {
     }
 };
 
-
 // Reject a Friend Request
 exports.rejectFriendRequest = async (req, res) => {
     try {
-        const { userId } = req.params;
-        const receiverId = req.user.userId;
+        const { userID } = req.params;
+        const receiverID = req.user.userID;
 
-        const receiver = await User.findById(receiverId);
-        const sender = await User.findById(userId);
+        const receiver = await User.findOne(receiverID);
+        const sender = await User.findOne(userID);
 
         if (!receiver || !sender) {
             return res.status(404).json({ message: "User not found." });
         }
 
-        if (!receiver.friendRequestsReceived.includes(userId)) {
+        if (!receiver.friendRequestsReceived.includes(userID)) {
             return res.status(400).json({ message: "No friend request found from this user." });
         }
 
-        // Remove friend request
-        receiver.friendRequestsReceived = receiver.friendRequestsReceived.filter(id => id.toString() !== userId);
-        sender.friendRequestsSent = sender.friendRequestsSent.filter(id => id.toString() !== receiverId);
-
+        receiver.friendRequestsReceived = receiver.friendRequestsReceived.filter(id => id !== userID);
+        sender.friendRequestsSent = sender.friendRequestsSent.filter(id => id !== receiverID);
         await receiver.save();
         await sender.save();
 
@@ -129,24 +139,29 @@ exports.rejectFriendRequest = async (req, res) => {
 // Unfriend a User
 exports.unfriendUser = async (req, res) => {
     try {
-        const { userId } = req.params;
-        const currentUserId = req.user.userId;
+        const { userID } = req.params;
+        const currentUserID = req.user.userID;
 
-        const currentUser = await User.findById(currentUserId);
-        const otherUser = await User.findById(userId);
+        console.log("Entered unfriendUser");
+        console.log("Current user ID:", currentUserID);
+        console.log("User ID to unfriend:", userID);
+
+        const currentUser = await User.findOne({ userID: currentUserID });
+        const otherUser = await User.findOne({ userID: userID });
 
         if (!currentUser || !otherUser) {
             return res.status(404).json({ message: "User not found." });
         }
 
-        // Check if they are friends
-        if (!currentUser.friends.includes(userId)) {
+        if (!currentUser.friends.includes(userID)) {
             return res.status(400).json({ message: "You are not friends with this user." });
         }
 
-        // Remove from each other's friend lists
-        currentUser.friends = currentUser.friends.filter(id => id.toString() !== userId);
-        otherUser.friends = otherUser.friends.filter(id => id.toString() !== currentUserId);
+        // Remove the userID from the currentUser's friends list
+        currentUser.friends = currentUser.friends.filter(friendID => friendID !== userID);
+
+        // Remove currentUser's userID from the otherUser's friends list
+        otherUser.friends = otherUser.friends.filter(friendID => friendID !== currentUserID);
 
         await currentUser.save();
         await otherUser.save();
@@ -158,33 +173,105 @@ exports.unfriendUser = async (req, res) => {
     }
 };
 
+
 // Search Users with Fuzzy Matching
 exports.searchUsers = async (req, res) => {
     try {
         const { query } = req.query;
-
+        
+        console.log("Entered try block");
+        console.log("Received search query:", query);
+        
         if (!query) {
+            console.log("Query missing, sending 400 response");
             return res.status(400).json({ message: "Search query is required." });
         }
 
-        // Fetch all users (ideally, this should be optimized with caching in a real-world app)
         const users = await User.find().select("username firstName lastName _id");
 
-        // Set up Fuse.js for fuzzy search
+        console.log("Fetched users from DB:", users.length);
+
         const fuse = new Fuse(users, {
-            keys: ["username", "firstName", "lastName"], // Fields to search in
-            threshold: 0.3,  // Adjust how "fuzzy" it is (0 = exact match, 1 = very loose)
-            includeScore: true, // Include similarity scores
+            keys: ["username", "firstName", "lastName"],
+            threshold: 0.3,
+            includeScore: true,
         });
 
         const results = fuse.search(query);
-
-        // Extract matched users
         const matchedUsers = results.map(result => result.item);
+
+        console.log("Search results:", matchedUsers.length);
 
         res.status(200).json(matchedUsers);
     } catch (error) {
+        console.error("Error in searchUsers:", error);
+        res.status(500).json({ message: "Server error.", error: error.toString() });
+    }
+};
+
+exports.getUserIDFromUsername = async (req, res) => {
+    try {
+        const { username } = req.query;
+
+        console.log("Entered try block and username is:", username);
+
+        const user = await User.findOne({ username });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        res.status(200).json({ userID: user.userID });
+    } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server error." });
+    }
+};
+
+// Get username by userID
+exports.getUsernameFromUserID = async (req, res) => {
+    try {
+        const { userID } = req.query;
+
+        const user = await User.findOne({ userID });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        res.status(200).json({ username: user.username });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+};
+
+// View Friends (this is a new API endpoint)
+exports.viewFriends = async (req, res) => {
+    try {
+
+        console.log("Entered viewFriends");
+        const user = await User.findOne({ userID: req.user.userID });
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Fetch usernames based on user IDs in friends array
+        const users = await User.find({
+            userID: { $in: user.friends }
+        });
+
+        
+
+        const friends = users.map(user => ({
+            userID: user.userID,
+            username: user.username
+        }));
+
+        console.log("Friends:", friends);
+
+        res.status(200).json({ friends });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
     }
 };

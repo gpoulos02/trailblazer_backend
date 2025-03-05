@@ -10,6 +10,22 @@ const sharp = require('sharp');
 const gridfsStream = require('gridfs-stream');
 const mongoose = require('mongoose');
 const { GridFsStorage } = require('multer-gridfs-storage');
+//const firebaseAdmin = require('firebase-admin'); // Import Firebase Admin SDK
+var firebaseAdmin = require("firebase-admin");
+const nodemailer = require('nodemailer'); // Make sure Nodemailer is required
+
+
+var serviceAccount = require('../config/serviceAccountKey.json');
+
+// Initialize Firebase Admin SDK
+if (!firebaseAdmin.apps.length) {
+  firebaseAdmin.initializeApp({
+    credential: firebaseAdmin.credential.cert(serviceAccount) // Use the service account JSON file
+  });
+} else {
+  firebaseAdmin.app(); // If already initialized
+}
+
 
 
 
@@ -35,7 +51,7 @@ exports.register = async (req, res) => {
         console.log("in register");
         const { username, password, firstName, lastName, email } = req.body;
 
-        // Check if the username or email already exists
+        // Check if the username or email already exists in MongoDB
         let user = await User.findOne({ $or: [{ username }, { email }] });
         if (user) {
             console.log('User already exists:', user);
@@ -49,7 +65,7 @@ exports.register = async (req, res) => {
         // Generate a new unique userID
         const userID = uuidv4();  // Generate a unique userID using UUID v4
 
-        // Create new user with the generated userID
+        // Create new user with the generated userID in MongoDB
         user = new User({
             username,
             password: hashedPassword,
@@ -62,13 +78,87 @@ exports.register = async (req, res) => {
         const savedUser = await user.save();
         console.log('User saved:', savedUser);
 
-        res.status(201).json({ message: 'User registered successfully' });
+        // Check if the email is already in Firebase Authentication
+        try {
+            const firebaseUser = await firebaseAdmin.auth().getUserByEmail(email);
+
+            // If user exists in Firebase, send an email verification link
+            console.log('Firebase user found:', firebaseUser.uid);
+            firebaseAdmin.auth().generateEmailVerificationLink(email)
+                .then((link) => {
+                    console.log('Email verification link:', link);
+                    
+                    // Send the verification link to the user's email
+                    sendVerificationEmail(email, link); // Call the function to send email
+                })
+                .catch(error => {
+                    console.error('Error sending verification email:', error);
+                });
+
+        } catch (error) {
+            // If the user doesn't exist in Firebase, create the Firebase user
+            if (error.code === 'auth/user-not-found') {
+                firebaseAdmin.auth().createUser({
+                    email: email,
+                    password: password // You may want to hash the password before passing it here
+                })
+                .then((userRecord) => {
+                    console.log('Firebase user created:', userRecord.uid);
+                    // After creating the user, send the email verification link
+                    firebaseAdmin.auth().generateEmailVerificationLink(email)
+                        .then((link) => {
+                            console.log('Email verification link:', link);
+                            sendVerificationEmail(email, link); // Send the email
+                        })
+                        .catch(error => {
+                            console.error('Error sending verification email:', error);
+                        });
+                })
+                .catch((error) => {
+                    console.error('Error creating Firebase user:', error);
+                });
+            } else {
+                // Handle other Firebase errors (unexpected issues)
+                console.error('Firebase error:', error);
+            }
+        }
+
+        res.status(201).json({ message: 'User registered successfully. Please check your email for verification.' });
         console.log(`Signing up user: ${username} (${firstName} ${lastName})`);
     } catch (error) {
         console.error('Error during registration:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+// Function to send email with the verification link using Nodemailer
+function sendVerificationEmail(to, link) {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail', // Use Gmail SMTP
+        auth: {
+            user: process.env.EMAIL_USER,  // Your Gmail email address from .env
+            pass: process.env.EMAIL_PASS,  // Your Gmail app password from .env
+        },
+        tls: {
+            rejectUnauthorized: false, // This is important for handling self-signed certificates and some other SSL issues
+        },
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER, // Your email address from .env
+        to: to, // Recipient's email
+        subject: 'Please verify your email address',
+        text: `Click the following link to verify your email address: \n\n${link}`, // Email body with the verification link
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error('Error sending email:', error);
+        } else {
+            console.log('Verification email sent:', info.response);
+        }
+    });
+}
 
 exports.login = async (req, res) => {
     try {
@@ -82,16 +172,26 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
+
         // Check if the user is suspended
         if (user.suspended) {
             console.log('Suspended account login attempt:', username);
             return res.status(403).json({ message: 'Your account is suspended. Please contact support.' });
+
+        // Check if the email is verified in Firebase
+        const firebaseUser = await firebaseAdmin.auth().getUserByEmail(user.email);
+        console.log('Firebase User:', firebaseUser); // Log the Firebase user object
+
+        if (!firebaseUser.emailVerified) {
+            console.log('Email not verified');
+            return res.status(403).json({ message: 'Please verify your email address before logging in.' });
+
         }
 
         // Check password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            console.log('Incorrect password', password);
+            console.log('Incorrect password');
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
@@ -103,12 +203,14 @@ exports.login = async (req, res) => {
         );
 
         res.json({ token });
-        //console.log(token);
     } catch (error) {
         console.error('Error during login:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+
+
 
 //logout
 exports.logout = async (req, res) => {

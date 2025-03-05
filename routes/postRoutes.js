@@ -13,19 +13,24 @@ router.post('/route', authMiddleware, postController.createRoutePost);
 router.post('/performance', authMiddleware, postController.createPerformancePost);
 
 // Like a post
-router.post('/:postId/like', authMiddleware, postController.likePost);
+router.post('/:postID/like', authMiddleware, postController.likePost);
+
+//Unlike a post 
+router.post('/:postID/unlike', authMiddleware, postController.unlikePost);
 
 // Comment on a post
-router.post('/:postId/comment', authMiddleware, postController.commentOnPost);
+router.post('/:postID/comment', authMiddleware, postController.commentOnPost);
+
+router.get('/:postID/getLikeCount', authMiddleware, postController.getLikeCount) 
 
 // Delete a post
-router.delete('/:postId', authMiddleware, postController.deletePost);
+router.delete('/:postID', authMiddleware, postController.deletePost);
 
 // Get all posts from the logged-in user
 router.get('/my-posts', authMiddleware, postController.getMyPosts);
 
 // Get posts from a specific user
-router.get('/user/:userId', authMiddleware, postController.getUserPosts);
+router.get('/user/:userID', authMiddleware, postController.getUserPosts);
 
 // Get posts from friends
 router.get('/friends', authMiddleware, postController.getFriendsPosts);

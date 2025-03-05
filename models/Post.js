@@ -1,18 +1,22 @@
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
 
 const postSchema = new mongoose.Schema({
-    user: { type: String, ref: 'User', required: true }, // Store userID as a String
+    postID: { type: String, default: uuidv4, unique: true, required: true }, 
+    userID: { type: String, ref: 'User', required: true }, // Store userID as a String
+
     type: { 
         type: String, 
         enum: ['text', 'route', 'performance'], 
         required: true 
     },
     textContent: { type: String, required: function() { return this.type === 'text'; } },
-    route: { type: mongoose.Schema.Types.ObjectId, ref: 'Route', required: function() { return this.type === 'route'; } },
-    performance: { type: mongoose.Schema.Types.ObjectId, ref: 'Metrics', required: function() { return this.type === 'performance'; } },
-    likes: [{ type: String, ref: 'User' }], // Store likes using userID (String)
+    routeID: { type: String, ref: 'Route', required: function() { return this.type === 'route'; } },
+    sessionID: { type: String, ref: 'Metrics', required: function() { return this.type === 'performance'; } },
+    likes: [{ type: String}], // Store likes using userID (String)
+
     comments: [{
-        user: { type: String, ref: 'User', required: true }, // Store userID as String
+        user: { type: String, ref: 'User', required: true },
         content: { type: String, required: true },
         createdAt: { type: Date, default: Date.now }
     }],
