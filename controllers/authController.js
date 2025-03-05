@@ -172,10 +172,19 @@ exports.login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
+        // Check if the email is verified in Firebase
+        const firebaseUser = await firebaseAdmin.auth().getUserByEmail(user.email);
+        console.log('Firebase User:', firebaseUser); // Log the Firebase user object
+
+        if (!firebaseUser.emailVerified) {
+            console.log('Email not verified');
+            return res.status(403).json({ message: 'Please verify your email address before logging in.' });
+        }
+
         // Check password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            console.log('Incorrect password', password);
+            console.log('Incorrect password');
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
@@ -187,12 +196,14 @@ exports.login = async (req, res) => {
         );
 
         res.json({ token });
-        //console.log(token);
     } catch (error) {
         console.error('Error during login:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+
+
 
 //logout
 exports.logout = async (req, res) => {
