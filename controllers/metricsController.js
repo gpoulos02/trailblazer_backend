@@ -321,41 +321,4 @@ exports.getAverageDifficulty = async (req, res) => {
     };
 
     const totalDifficulty = validDifficulties.reduce((sum, difficulty) => {
-      return sum + (difficultyScores[difficulty] || 0); // Default to 0 if invalid difficulty
-    }, 0);
-
-    const averageDifficulty = totalDifficulty / validDifficulties.length;
-
-    console.log("Total Difficulty:", totalDifficulty); // Log total difficulty
-    console.log("Average Difficulty (before formatting):", averageDifficulty); // Log before rounding
-
-    // Reverse the mapping to get difficulty from the score
-    const difficultyLabels = {
-      1: "Green",
-      2: "Blue",
-      3: "Black",
-      4: "Double Black",
-    };
-
-    // Get the difficulty label corresponding to the average difficulty score
-    let averageDifficultyLabel = "green"; // Default to "green" if something goes wrong
-    if (averageDifficulty >= 1 && averageDifficulty <= 1.5) {
-      averageDifficultyLabel = difficultyLabels[1]; // green
-    } else if (averageDifficulty > 1.5 && averageDifficulty <= 2.5) {
-      averageDifficultyLabel = difficultyLabels[2]; // blue
-    } else if (averageDifficulty > 2.5 && averageDifficulty <= 3.5) {
-      averageDifficultyLabel = difficultyLabels[3]; // black
-    } else if (averageDifficulty > 3.5) {
-      averageDifficultyLabel = difficultyLabels[4]; // double black
-    }
-
-    console.log("Average Difficulty (formatted):", averageDifficultyLabel); // Log the label
-
-    res.json({ averageDifficulty: averageDifficultyLabel });
-  } catch (error) {
-    console.error("Error fetching average difficulty:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-module.exports = exports;
+      return sum + (difficu
