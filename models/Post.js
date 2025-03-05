@@ -11,7 +11,7 @@ const postSchema = new mongoose.Schema({
         required: true 
     },
     textContent: { type: String, required: function() { return this.type === 'text'; } },
-    routeID: { type: mongoose.Schema.Types.ObjectId, ref: 'Route', required: function() { return this.type === 'route'; } },
+    routeID: { type: String, ref: 'Route', required: function() { return this.type === 'route'; } },
     sessionID: { type: String, ref: 'Metrics', required: function() { return this.type === 'performance'; } },
     likes: [{ type: String}], // Store likes using userID (String)
 
