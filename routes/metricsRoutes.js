@@ -32,6 +32,9 @@ router.get('/all', authMiddleware, metricsController.getAllMetrics);
 //get all metrics for particular user 
 router.get('/metrics', metricsController.getMetricsByUserId);
 
+// get average difficulty fort day 
+router.get('/average-difficulty', metricsController.getAverageDifficulty);
+
 
 
 

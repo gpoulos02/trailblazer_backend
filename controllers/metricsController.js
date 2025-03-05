@@ -256,8 +256,42 @@ exports.getMetricsByUserId = async (req, res) => {
             res.status(500).json({ message: 'Server error' });
         }
     };
+
+exports.getAverageDifficulty = async (req, res) => {
+    try {
+        const userID = req.user.userID; // Assuming user ID is sent in the request
+        if (!userID) {
+            return res.status(400).json({ error: "User ID is required." });
+        }
+            
+        // Define today's date range (midnight to 23:59:59)
+        const startOfDay = moment().startOf('day').toDate();
+        const endOfDay = moment().endOf('day').toDate();
+    
+        // Fetch all runs from today for the user
+        const runs = await Metrics.find({
+            userID: userID,
+            date: { $gte: startOfDay, $lte: endOfDay }
+        });
+    
+        if (!runs.length) {
+            return res.json({ averageDifficulty: 0 }); // Default to 0 if no runs today
+        }
+    
+            // Calculate the average difficulty
+        const totalDifficulty = runs.reduce((sum, run) => sum + run.difficulty, 0);
+        const averageDifficulty = totalDifficulty / runs.length;
+    
+        res.json({ averageDifficulty: averageDifficulty.toFixed(2) });
+    } catch (error) {
+        console.error("Error fetching average difficulty:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+    
     
 module.exports = exports;
+
 
 
 
