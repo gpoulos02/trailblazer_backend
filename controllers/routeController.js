@@ -3,28 +3,39 @@ const mongoose = require('mongoose');
 const Trail = require('../models/Trail');
 const Chairlift = require('../models/Chairlift');
 const PointOfInterest = require('../models/PointOfInterest');
+const Route = require("../models/Route")
+const User = require('../models/User'); // Ensure you have User model imported
 
 
 exports.findRoutes = async (req, res) => {
     try {
         const { chairliftName, maxDifficulty, destination, mountainID } = req.body;
 
+        console.log("Request received with parameters:", { chairliftName, maxDifficulty, destination, mountainID });
+
+        // Validate mandatory parameters
         if (!chairliftName || !maxDifficulty || mountainID === undefined) {
             return res.status(400).json({ message: "chairliftName, maxDifficulty, and mountainID are required." });
         }
 
-        // Find the chairlift by name & mountainID
-        const chairlift = await Chairlift.findOne({ liftName: chairliftName, mountainID })
-            .populate({
-                path: 'topTrails',
-                model: 'Trail',
-                options: { select: 'runID runName difficulty' }
-            });
+        // Find the chairlift by name
+        console.log(`Searching for chairlift with name: ${chairliftName}`);
+        const chairlift = await Chairlift.findOne({ liftName: chairliftName, mountainID }).populate({
+            path: 'topTrails',
+            model: 'Trail',
+            localField: 'topTrails',
+            foreignField: 'runID',
+            options: { select: 'runID runName difficulty' }
+        });
 
         if (!chairlift || !chairlift.topTrails.length) {
-            return res.status(404).json({ message: "No trails found for this chairlift." });
+            console.warn(`No trails found for the given chairlift name: ${chairliftName}`);
+            return res.status(404).json({ message: "No trails found for the given chairlift name." });
         }
 
+        console.log(`Chairlift found: ${chairlift.liftName}, Top trails: ${chairlift.topTrails.length}`);
+
+        // Difficulty mapping for filtering
         const allowedDifficulties = {
             'green': ['green'],
             'blue': ['green', 'blue'],
@@ -34,50 +45,94 @@ exports.findRoutes = async (req, res) => {
 
         const validDifficulties = allowedDifficulties[maxDifficulty.toLowerCase()];
         if (!validDifficulties) {
+            console.error(`Invalid maxDifficulty value provided: ${maxDifficulty}`);
             return res.status(400).json({ message: "Invalid maxDifficulty value." });
         }
+
+        console.log(`Valid difficulties based on maxDifficulty (${maxDifficulty}):`, validDifficulties);
 
         const routes = [];
         const visited = new Set();
 
         const traverse = async (trailObj, currentPath) => {
             const trailRunID = trailObj.runID;
-            if (visited.has(trailRunID)) return;
+
+            if (visited.has(trailRunID)) {
+                console.debug(`Skipping already visited trail: ${trailRunID}`);
+                return; // Prevent infinite loops
+            }
             visited.add(trailRunID);
 
+            console.log(`Visiting trail: ${trailRunID}`);
+
+            // Find the current trail in the database and populate its relationships
             const trail = await Trail.findOne({ runID: trailRunID, mountainID })
-                .populate({ path: 'childTrails', model: 'Trail', options: { select: 'runID runName difficulty' } })
-                .populate({ path: 'endingPoints', model: 'PointOfInterest', options: { select: 'POI_id POI_name type' } });
+                .populate({
+                    path: 'childTrails',
+                    model: 'Trail',
+                    localField: 'childTrails',
+                    foreignField: 'runID',
+                    options: { select: 'runID runName difficulty' }
+                })
+                .populate({
+                    path: 'endingPoints',
+                    model: 'PointOfInterest',
+                    localField: 'endingPoints',
+                    foreignField: 'POI_id',
+                    options: { select: 'POI_id POI_name type' }
+                });
 
-            if (!trail || !validDifficulties.includes(trail.difficulty)) return;
+            if (!trail) {
+                console.error(`Trail with runID ${trailRunID} not found in the database.`);
+                return;
+            }
 
+            console.log(`Trail found: ${trail.runName}, Difficulty: ${trail.difficulty}`);
+
+            if (!validDifficulties.includes(trail.difficulty)) {
+                console.debug(`Skipping trail due to difficulty filter: ${trail.difficulty}`);
+                return;
+            }
+
+            // Add the current trail as a standalone route if it's an end trail
             if (trail.isEnd || (destination && trail.endingPoints.some(point => point.POI_id === destination))) {
+                console.log(`Adding end trail to routes: ${trail.runName}`);
                 routes.push([...currentPath, trail]);
             }
 
+            // Recursively traverse child trails
             for (const childTrail of trail.childTrails) {
                 if (childTrail && childTrail.runID) {
-                    await traverse(childTrail, [...currentPath, trail]);
+                    console.log(`Branching to child trail: ${childTrail.runID}`);
+                    await traverse(childTrail, [...currentPath, trail]); // Pass the updated path
+                } else {
+                    console.warn('Invalid childTrail found during traversal:', childTrail);
                 }
             }
         };
 
+        // Start traversal from each trail at the chairlift
         for (const trailObj of chairlift.topTrails) {
-            await traverse(trailObj, []);
+            console.log(`Starting traversal for trail: ${trailObj.runID}`);
+            await traverse(trailObj, []); // Assuming `chairlift.topTrails` contains trail objects
         }
 
+        // Respond with the found routes
         if (routes.length === 0) {
+            console.warn("No suitable routes found after traversal.");
             return res.status(404).json({ message: "No suitable routes found." });
         }
 
+        console.log(`Routes found: ${routes.length}`);
         res.json(
-            routes.map(route => route.map(trail => ({
-                runID: trail.runID,
-                runName: trail.runName,
-                difficulty: trail.difficulty
-            })))
+            routes.map(route =>
+                route.map(trail => ({
+                    runID: trail.runID,
+                    runName: trail.runName,
+                    difficulty: trail.difficulty
+                }))
+            )
         );
-
     } catch (error) {
         console.error('Error finding routes:', error);
         res.status(500).json({ message: "Server error." });
@@ -86,33 +141,42 @@ exports.findRoutes = async (req, res) => {
 
 
 
+
 // Save a route
+
 exports.saveRoute = async (req, res) => {
     try {
-        const { name, trails } = req.body;
-        const { mountainID } = req.params; 
+        const { name, trails, mountainID } = req.body;
 
-        // Validate input
         if (!name || !trails || !trails.length || mountainID === undefined) {
             return res.status(400).json({ message: "Route name, trails, and mountainID are required." });
         }
 
-        // Check if the provided mountainID exists
-        const mountainExists = await Mountain.findOne({ mountainID });
-        if (!mountainExists) {
-            return res.status(404).json({ message: "Mountain not found." });
+        // Find user by `userID` (UUID) and get MongoDB `_id`
+        const user = await User.findOne({ userID: req.user.userID }).select('_id');
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
         }
 
-        // Create new route with mountainID
+        // Ensure all `trails` are valid `runID`s
+        const validTrailIDs = await Trail.find({ runID: { $in: trails }, mountainID }).distinct('runID');
+
+        if (validTrailIDs.length !== trails.length) {
+            return res.status(400).json({ message: "Some trails were not found for the given mountainID." });
+        }
+
+        // Create new route with runID references instead of `_id`
         const route = new Route({
-            user: req.user.userID, // Assumes user ID is stored in req.user by auth middleware
+            user: user._id,
             name,
-            trails,
+            trails: validTrailIDs, 
             mountainID
         });
 
         await route.save();
         res.status(201).json({ message: "Route saved successfully.", route });
+
     } catch (error) {
         console.error("Error saving route:", error);
         res.status(500).json({ message: "Server error while saving route." });
@@ -121,16 +185,28 @@ exports.saveRoute = async (req, res) => {
 
 
 
+
+
 // Load all saved routes for the user
 exports.getUserRoutes = async (req, res) => {
     try {
-        const routes = await Route.find({ user: req.user.userID }).populate('trails');
+        // Find the user by `userID` (UUID) and get MongoDB `_id`
+        const user = await User.findOne({ userID: req.user.userID }).select('_id');
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        // Query routes using MongoDB `_id`
+        const routes = await Route.find({ user: user._id }).populate('trails');
+
         if (!routes.length) {
             return res.status(404).json({ message: "No saved routes found." });
         }
+
         res.json(routes);
     } catch (error) {
-        console.error(error);
+        console.error("Error fetching user routes:", error);
         res.status(500).json({ message: "Server error while fetching routes." });
     }
 };
@@ -140,38 +216,32 @@ exports.deleteRoute = async (req, res) => {
     try {
         const { routeId } = req.params;
 
-        const route = await Route.findByIdAndDelete(routeId);
-        if (!route) {
-            return res.status(404).json({ message: "Route not found." });
+        // Validate routeId format
+        if (!mongoose.Types.ObjectId.isValid(routeId)) {
+            return res.status(400).json({ message: "Invalid route ID format." });
         }
+
+        // Find user in MongoDB (ensure we have correct ObjectId)
+        const user = await User.findOne({ userID: req.user.userID }).select('_id');
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        // Find the route and ensure the user owns it
+        const route = await Route.findOne({ _id: routeId, user: user._id });
+        if (!route) {
+            return res.status(404).json({ message: "Route not found or you do not have permission to delete it." });
+        }
+
+        // Delete the route
+        await Route.findByIdAndDelete(routeId);
         res.json({ message: "Route deleted successfully." });
+
     } catch (error) {
-        console.error(error);
+        console.error("Error deleting route:", error);
         res.status(500).json({ message: "Server error while deleting route." });
     }
 };
 
-//IS THIS USED?
-exports.getRunIDByRunName = async (req, res) => {
-    try {
-        const { runName, mountainID } = req.query;  
-
-        if (!runName || !mountainID) {
-            return res.status(400).json({ message: 'runName and mountainID are required' });
-        }
-
-        // Fetch the trail by runName and mountainID
-        const trail = await Trail.findOne({ runName, mountainID });
-
-        if (!trail) {
-            return res.status(404).json({ message: 'Trail not found' });
-        }
-
-        res.json({ runID: String(trail.runID) });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
 
 module.exports = exports;

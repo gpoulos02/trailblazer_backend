@@ -95,7 +95,7 @@ const options = {
 
 // Start HTTPS server
 const PORT = process.env.PORT || 5001;
-https.createServer(options, app).listen(PORT, 'TrailBlazer33', () => {
+https.createServer(options, app).listen(PORT, 'localhost', () => {
     console.log(`HTTPS Server running on https://TrailBlazer33:${PORT}`);
 });
 

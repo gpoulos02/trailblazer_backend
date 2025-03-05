@@ -84,25 +84,25 @@ exports.getUniqueDifficulties = async (req, res) => {
 // Get trail name by runID
 exports.getRunNameByRunID = async (req, res) => {
     try {
-        const { runName, mountainID } = req.params;
+        const { runID, mountainID } = req.params;  // Fix: use runID instead of runName
 
-        if (!runName || !mountainID) {
-            return res.status(400).json({ message: "runName and mountainID are required." });
+        if (!runID || !mountainID) {
+            return res.status(400).json({ message: "runID and mountainID are required." });
         }
 
-        // Case-insensitive search
-        const trail = await Trail.findOne({ runName: { $regex: new RegExp("^" + runName + "$", "i") }, mountainID });
+        const trail = await Trail.findOne({ runID, mountainID });
 
         if (!trail) {
             return res.status(404).json({ message: "Trail not found." });
         }
 
-        res.status(200).json({ runID: trail.runID });
+        res.status(200).json({ runName: trail.runName });
     } catch (error) {
-        console.error("Error retrieving runID by runName:", error);
-        res.status(500).json({ message: "Error retrieving runID by runName.", error });
+        console.error("Error retrieving runName by runID:", error);
+        res.status(500).json({ message: "Server error." });
     }
 };
+
 
 
 // Get runID by trail name
