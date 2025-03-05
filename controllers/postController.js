@@ -308,27 +308,67 @@ exports.getMyPosts = async (req, res) => {
 // Retrieve posts from all friends
 // Retrieve posts from all friends
 exports.getFriendsPosts = async (req, res) => {
-            try {
-                const user = await User.findOne({ userID: req.user.userID }).lean(); // Use lean() to return a plain object
-        
-                if (!user) return res.status(404).json({ message: 'User not found' });
-        
-                const friendIds = user.friends; // No need for populate
-                console.log("Friend IDs:", friendIds);
-        
-                const posts = await Post.find({ userID: { $in: friendIds.map(String) } }) // Ensure they are strings
-                    .sort({ createdAt: -1 })
-                    //.populate('routeID')
-                    .populate('sessionID');
-        
-                res.status(200).json(posts);
-            } catch (error) {
-                console.error(error);
-                res.status(500).json({ message: 'Server error' });
-            }
-        };
-    
+    try {
+        console.log("Received request to fetch friends' posts for user:", req.user.userID);
+        
+        // Fetch the user based on userID
+        const user = await User.findOne({ userID: req.user.userID }).lean();
+        console.log("User found:", user);
 
+        if (!user) {
+            console.log("User not found in database");
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Extract friend IDs
+        const friendIds = user.friends;
+        console.log("Friend IDs:", friendIds);
+
+        if (!friendIds || friendIds.length === 0) {
+            console.log("User has no friends, returning empty posts array");
+            return res.status(200).json([]);
+        }
+
+        // Fetch posts from friends
+        let posts = await Post.find({ userID: { $in: friendIds.map(String) } })
+            .sort({ createdAt: -1 })  
+            .lean()  
+            .select('postID userID type title routeID sessionID createdAt likes comments textContent');
+
+        console.log(`Fetched ${posts.length} posts from friends`);
+
+        // Populate session data for performance posts
+        posts = await Promise.all(posts.map(async (post) => {
+            if (post.type === 'performance' && post.sessionID) {
+                console.log(`Fetching session data for performance post: ${post.postID}, sessionID: ${post.sessionID}`);
+
+                const session = await Metrics.findOne({ sessionID: post.sessionID }).select('-__v');
+                
+                if (session) {
+                    console.log(`Session data found for sessionID ${post.sessionID}:`, session.sessionData);
+
+                    return { 
+                        ...post, 
+                        sessionID: session.sessionID, 
+                        topSpeed: session.sessionData?.topSpeed, 
+                        distance: session.sessionData?.distance, 
+                        elevationGain: session.sessionData?.elevationGain, 
+                        duration: session.sessionData?.duration 
+                    };
+                } else {
+                    console.log(`No session data found for sessionID ${post.sessionID}`);
+                }
+            }
+            return post;
+        }));
+
+        console.log("Final friends' posts with session data:", posts);
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error("Error fetching friends' posts:", error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
 
 
 
@@ -349,7 +389,18 @@ exports.getAllPosts = async (req, res) => {
             if (post.type === 'performance') {
                 // Fetch session data for performance posts
                 const session = await Metrics.findOne({ sessionID: post.sessionID }).select('-__v');
-                post.sessionData = session ? session : null; // Attach session data
+                
+                // Flatten the session data directly into the post object
+                if (session) {
+                    post = { 
+                        ...post, 
+                        sessionID: session.sessionID, 
+                        topSpeed: session.sessionData?.topSpeed, 
+                        distance: session.sessionData?.distance, 
+                        elevationGain: session.sessionData?.elevationGain, 
+                        duration: session.sessionData?.duration 
+                    };
+                }
             }
             return post;
         }));
@@ -361,6 +412,7 @@ exports.getAllPosts = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 
 
