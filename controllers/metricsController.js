@@ -1,7 +1,7 @@
 const Metrics = require("../models/Metrics");
 const { v4: uuidv4 } = require("uuid");
 const moment = require("moment");
-const BlueMountainTrail = require("../models/BlueMountainTrail"); // Import the trail model
+const Trail = require("../models/Trail"); // Import the trail model
 
 exports.saveSession = async (req, res) => {
   try {
@@ -25,12 +25,12 @@ exports.saveSession = async (req, res) => {
         .status(400)
         .json({ message: "User not authenticated or userID missing" });
     }
-    
+
     // Validate that the mountain exists
     const mountainExists = await Mountain.findOne({ mountainID });
-        if (!mountainExists) {
-        return res.status(404).json({ message: 'Mountain not found' });
-    }    
+    if (!mountainExists) {
+      return res.status(404).json({ message: "Mountain not found" });
+    }
 
     // Create a new sessionID for each save (uuid)
     const sessionID = uuidv4();
@@ -152,19 +152,26 @@ exports.getMetricOverview = async (req, res) => {
 };
 
 exports.getRunsByRunID = async (req, res) => {
-    try {
-        const { runID, mountainID } = req.params;
+  try {
+    const { runID, mountainID } = req.params;
 
-        const runs = await Metrics.find({ runID, mountainID, userID: req.user.userID });
+    const runs = await Metrics.find({
+      runID,
+      mountainID,
+      userID: req.user.userID,
+    });
 
-        if (!runs.length) {
-            return res.status(404).json({ message: 'No runs found for this runID and mountain.' });
-        }
+    if (!runs.length) {
+      return res
+        .status(404)
+        .json({ message: "No runs found for this runID and mountain." });
+    }
 
-        res.json(runs);
-    } catch (error) {
-        console.error('Error retrieving runs by runID:', error);
-        res.status(500).json({ message: 'Server error' });
+    res.json(runs);
+  } catch (error) {
+    console.error("Error retrieving runs by runID:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 exports.getRunsByDate = async (req, res) => {

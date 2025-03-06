@@ -15,7 +15,7 @@ router.get('/', authMiddleware, routeController.getUserRoutes);
 // DELETE /api/routes/delete/:routeId - Delete a saved route 
 router.delete('/delete/:routeId', authMiddleware, routeController.deleteRoute);
 
-router.get('/runNamebyID', authMiddleware, routeController.getRunNameByRunID);
+// router.get('/runNamebyID', authMiddleware, routeController.getRunNameByRunID);
 
 router.get('/route-names', authMiddleware, routeController.getRouteNames);
 

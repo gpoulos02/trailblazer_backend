@@ -6,7 +6,7 @@ const PointOfInterest = require('../models/PointOfInterest');
 const Route = require("../models/Route")
 const User = require('../models/User'); // Ensure you have User model imported
 const { v4 : uuidv4 } = require('uuid');
-const Route = require('../models/Route');
+// const Route = require('../models/Route');
 
 
 

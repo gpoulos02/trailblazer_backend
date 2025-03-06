@@ -177,7 +177,8 @@ exports.login = async (req, res) => {
         if (user.suspended) {
             console.log('Suspended account login attempt:', username);
             return res.status(403).json({ message: 'Your account is suspended. Please contact support.' });
-
+        }
+        
         // Check if the email is verified in Firebase
         const firebaseUser = await firebaseAdmin.auth().getUserByEmail(user.email);
         console.log('Firebase User:', firebaseUser); // Log the Firebase user object
