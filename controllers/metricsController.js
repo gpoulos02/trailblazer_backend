@@ -2,10 +2,13 @@ const Metrics = require("../models/Metrics");
 const { v4: uuidv4 } = require("uuid");
 const moment = require("moment");
 const Trail = require("../models/Trail"); // Import the trail model
+const Mountain = require("../models/Mountain");
 
 exports.saveSession = async (req, res) => {
   try {
-    const { sessionData, runID } = req.body;
+    const { sessionData, runID, mountainID } = req.body;
+
+    console.log("Received body:", req.body);
 
     if (
       !sessionData.topSpeed ||
@@ -27,7 +30,7 @@ exports.saveSession = async (req, res) => {
     }
 
     // Validate that the mountain exists
-    const mountainExists = await Mountain.findOne({ mountainID });
+    const mountainExists = await Mountain.findOne({ mountainID: Number(mountainID) });
     if (!mountainExists) {
       return res.status(404).json({ message: "Mountain not found" });
     }
@@ -39,12 +42,16 @@ exports.saveSession = async (req, res) => {
       sessionID, // Include the unique sessionID here
       userID,
       runID,
+      mountainID,
       sessionData,
       createdAt: new Date(),
     });
 
     await metrics.save();
+
     res.status(201).json(metrics);
+
+    console.log("Metrics saved:", metrics);
   } catch (error) {
     console.error("Error saving session:", error);
     res.status(500).json({ message: "Server error" });
@@ -299,7 +306,7 @@ exports.getAverageDifficulty = async (req, res) => {
     // Fetch trail difficulty for each run from BlueMountainTrail
     const runDifficulties = await Promise.all(
       runs.map(async (run) => {
-        const trail = await BlueMountainTrail.findOne({ runID: run.runID });
+        const trail = await Trail.findOne({ runID: run.runID });
         if (trail) {
           console.log(
             `Run ID: ${run.runID} has Difficulty: ${trail.difficulty}`
