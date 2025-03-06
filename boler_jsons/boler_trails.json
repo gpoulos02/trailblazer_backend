@@ -1,0 +1,168 @@
+
+{
+    "trails": [
+      {
+        "runID": 1,
+        "runName": "Elbow",
+        "difficulty": "green",
+        "startingLift": 2,
+        "parentTrail": null,
+        "childTrails": null,
+        "endingPoints": [3],
+        "isEnd": true,
+        "mergesTo": null
+      }, 
+      {
+        "runID": 2,
+        "runName": "Big Dip",
+        "difficulty": "black",
+        "startingLift": 2,
+        "parentTrail": null,
+        "childTrails": null,
+        "endingPoints": [3],
+        "isEnd": true,
+        "mergesTo": null
+      }, 
+      {
+        "runID": 3,
+        "runName": "Double Dip",
+        "difficulty": "blue",
+        "startingLift": 2,
+        "parentTrail": null,
+        "childTrails": null,
+        "endingPoints": [3],
+        "isEnd": true,
+        "mergesTo": null
+      }, 
+      {
+        "runID": 4,
+        "runName": "Rusty's Run Terrain Park",
+        "difficulty": "double black",
+        "startingLift": 2,
+        "parentTrail": null,
+        "childTrails": null,
+        "endingPoints": [3, 1],
+        "isEnd": true,
+        "mergesTo": null
+      }, 
+      {
+        "runID": 5,
+        "runName": "Hill 55",
+        "difficulty": "black",
+        "startingLift": 2,
+        "parentTrail": null,
+        "childTrails": null,
+        "endingPoints": [1, 2],
+        "isEnd": true,
+        "mergesTo": null
+      }, 
+      {
+        "runID": 6,
+        "runName": "J.S.",
+        "difficulty": "black",
+        "startingLift": 2,
+        "parentTrail": null,
+        "childTrails": null,
+        "endingPoints": [1, 2],
+        "isEnd": true,
+        "mergesTo": null
+      }, 
+      {
+        "runID": 7,
+        "runName": "Rub-a-Dub",
+        "difficulty": "blue",
+        "startingLift": 2,
+        "parentTrail": null,
+        "childTrails": null,
+        "endingPoints": [1, 2],
+        "isEnd": true,
+        "mergesTo": []
+      }, 
+      {
+        "runID": 8,
+        "runName": "Easy Street",
+        "difficulty": "green",
+        "startingLift": 2,
+        "parentTrail": null,
+        "childTrails": [13],
+        "endingPoints": [1, 2],
+        "isEnd": true,
+        "mergesTo": []
+      }, 
+      {
+        "runID": 13,
+        "runName": "Apple Jack",
+        "difficulty": "green",
+        "startingLift": 2,
+        "parentTrail": [8],
+        "childTrails": null,
+        "endingPoints": [1, 5],
+        "isEnd": true,
+        "mergesTo": null
+      }, 
+      {
+        "runID": 9,
+        "runName": "Willie's Bowl",
+        "difficulty": "green",
+        "startingLift": 4,
+        "parentTrail": null,
+        "childTrails":null,
+        "endingPoints": [1, 5],
+        "isEnd": true,
+        "mergesTo": null
+      }
+      ,{
+        "runID": 10,
+        "runName": "Spriet Street",
+        "difficulty": "blue",
+        "startingLift": 5,
+        "parentTrail": null,
+        "childTrails": null,
+        "endingPoints": [1, 5],
+        "isEnd": false,
+        "mergesTo": [13]
+      }
+      , {
+        "runID": 11,
+        "runName": "Wayne's Way",
+        "difficulty": "double black",
+        "startingLift": 5,
+        "parentTrail": null,
+        "childTrails": null,
+        "endingPoints": [1, 5],
+        "isEnd": false,
+        "mergesTo": [13]
+      }, {
+        "runID": 12,
+        "runName": "Dedication Trail",
+        "difficulty": "black",
+        "startingLift": 5,
+        "parentTrail": null,
+        "childTrails": null,
+        "endingPoints": [1, 5],
+        "isEnd": true,
+        "mergesTo": null
+      }, {
+        "runID": 14,
+        "runName": "Kennedy Kruzer",
+        "difficulty": "blue",
+        "startingLift": 5,
+        "parentTrail": null,
+        "childTrails": null,
+        "endingPoints": [1, 5],
+        "isEnd": true,
+        "mergesTo": null
+      }, {
+        "runID": 15,
+        "runName": "Red's Run",
+        "difficulty": "blue",
+        "startingLift": 5,
+        "parentTrail": null,
+        "childTrails": null,
+        "endingPoints": [1, 5],
+        "isEnd": true,
+        "mergesTo": null
+      }
+    ]
+  }
+  

@@ -1,0 +1,29 @@
+{
+    "chairlifts": [
+      {
+        "liftID": 1,
+        "liftName": "Columbia Titanium Express",
+        "topTrails": [],
+        "bottomPOI": [1, 2]
+      }, 
+      {
+        "liftID": 2,
+        "liftName": "Oxford Dodge",
+        "topTrails": [],
+        "bottomPOI": [3]
+      }, 
+      {
+        "liftID": 3,
+        "liftName": "Willie's Magic Carpet",
+        "topTrails": [],
+        "bottomPOI": [4, 1]
+      },
+      {
+        "liftID": 4,
+        "liftName": "London International Airport",
+        "topTrails": [],
+        "bottomPOI": [1, 4, 5]
+      }
+    ]
+  }
+  
