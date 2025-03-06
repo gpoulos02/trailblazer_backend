@@ -20,4 +20,7 @@ router.get('/:mountainID/run-name/:runID', trailController.getRunNameByRunID);
 // GET: Get runID by runName
 router.get('/:mountainID/run-id/:runName', trailController.getRunIDByRunName);
 
+// get trail difficulties 
+router.post('/:mountainID/trail-difficulty', trailController.getTrailDifficulty);
+
 module.exports = router;
