@@ -239,18 +239,22 @@ exports.commentOnPost = async (req, res) => {
 exports.deletePost = async (req, res) => {
     try {
         const post = await Post.findOne({ postID: req.params.postID });
-        if (!post) return res.status(404).json({ message: 'Post not found' });
-
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
 
         if (post.userID !== req.user.userID) {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
         await Post.deleteOne({ postID: req.params.postID });
-        res.status(200).json({ message: 'Post deleted' });
+
+        // Ensure JSON response is always sent
+        return res.status(200).json({ message: 'Post deleted successfully' });
+
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        return res.status(500).json({ message: 'Server error' });
     }
 };
 

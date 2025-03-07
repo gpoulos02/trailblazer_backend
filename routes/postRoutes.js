@@ -24,7 +24,7 @@ router.post('/:postID/comment', authMiddleware, postController.commentOnPost);
 router.get('/:postID/getLikeCount', authMiddleware, postController.getLikeCount) 
 
 // Delete a post
-router.delete('/:postID', authMiddleware, postController.deletePost);
+router.delete('/delete/:postID', authMiddleware, postController.deletePost);
 
 // Get all posts from the logged-in user
 router.get('/my-posts', authMiddleware, postController.getMyPosts);
