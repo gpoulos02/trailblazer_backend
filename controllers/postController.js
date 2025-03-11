@@ -210,30 +210,80 @@ exports.unlikePost = async (req, res) => {
     }
 };
 
-// Comment on Post
 exports.commentOnPost = async (req, res) => {
     try {
         const { content } = req.body;
-        if (!content) return res.status(400).json({ message: 'Comment content is required' });
+        console.log("Received comment content:", content);
 
-        const post = await Post.findOne({ postID: req.params.postID }).populate('userID', 'username');
-        if (!post) return res.status(404).json({ message: 'Post not found' });
+        if (!content) {
+            console.log("Error: Comment content is required.");
+            return res.status(400).json({ message: 'Comment content is required' });
+        }
 
+        console.log("Fetching post with postID:", req.params.postID);
+
+        // Query the post by postID directly
+        const post = await Post.findOne({ postID: req.params.postID });
+
+        if (!post) {
+            console.log("Error: Post not found with postID:", req.params.postID);
+            return res.status(404).json({ message: 'Post not found' });
+        }
+
+        console.log("Post found:", post);
+
+        // Get userID from the request user object (from the token)
+        const userID = req.user.userID;
+        if (!userID) {
+            console.log("Error: User not found");
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log("User ID from token:", userID);
+
+        // Query the user to get the username
+        const user = await User.findOne({ userID: userID });
+        if (!user) {
+            console.log("Error: User not found with userID:", userID);
+            return res.status(404).json({ message: 'User not found' });
+        }
+        console.log("User found:", user);
+
+        // Make sure all comments have the username
+        post.comments = post.comments.map(comment => {
+            // If username is missing in any comment, we add it
+            if (!comment.username) {
+                comment.username = user.username;
+            }
+            return comment;
+        });
+
+        // Create the new comment with the correct username and content
         const comment = {
-            user: req.user.userID,
+            username: user.username,  // Attach the username to the comment
             content,
             createdAt: Date.now()
         };
 
-        post.comments.push(comment);
-        await post.save();
+        console.log("Creating comment:", comment);
 
-        res.status(200).json({ message: 'Comment added', post });
+        // Push the comment into the post's comments array
+        post.comments.push(comment);
+        console.log("New comment added to post:", post.comments);
+
+        // Save the post with the new comment
+        await post.save();
+        console.log("Post saved with new comment");
+
+        // Respond with the updated post, including the comments
+        res.status(200).json({ message: 'Comment added', post: post });
     } catch (error) {
-        console.error(error);
+        console.error("Error in commentOnPost:", error);
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+
 
 // Delete Post
 exports.deletePost = async (req, res) => {

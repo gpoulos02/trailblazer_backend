@@ -3,8 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const postSchema = new mongoose.Schema({
     postID: { type: String, default: uuidv4, unique: true, required: true }, 
-    userID: { type: String, ref: 'User', required: true }, // Store userID as a String
-
+    userID: { type: String, ref: 'User', required: true }, // Ensure this is a String (UUID)
     type: { 
         type: String, 
         enum: ['text', 'route', 'performance'], 
@@ -16,7 +15,7 @@ const postSchema = new mongoose.Schema({
     likes: [{ type: String}], // Store likes using userID (String)
 
     comments: [{
-        user: { type: String, ref: 'User', required: true },
+        username: { type: String, required: true }, 
         content: { type: String, required: true },
         createdAt: { type: Date, default: Date.now }
     }],
