@@ -483,3 +483,39 @@ exports.searchUsers = async (req, res) => {
         res.status(500).json({ message: "Server error.", error: error.toString() });
     }
 };
+
+
+
+//get user role type by id 
+exports.getUserRole = async (req, res) => {
+    try {
+        const userId = req.user.userID;
+        console.log(' Request to get user role received');
+
+        // Check if userId is set in the auth middleware
+        
+        console.log(' Decoded userId:', userId);
+
+        if (!userId) {
+            console.log('No userId found in request');
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        // Find the user by ID
+        const user = await User.findOne({userID: userId});
+        if (!user) {
+            console.log(' User not found for userId:', userId);
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log('User found:', user);
+
+        // Return the user's role
+        res.status(200).json({ role: user.role });
+        console.log('User role sent:', user.role);
+    } catch (error) {
+        console.error('Error fetching user role:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+

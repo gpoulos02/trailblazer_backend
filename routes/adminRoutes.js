@@ -6,12 +6,12 @@ const adminController = require('../controllers/adminController');
 const postController = require("../controllers/postController")
 
 // Approve a Mountain Owner
-//router.put('/approve-mountain-owner/:userId', authMiddleware, roleMiddleware(['admin']), adminController.approveMountainOwner);
-router.put('/approve-mountain-owner/:userId', authMiddleware, adminController.approveMountainOwner);
+router.put('/approve-mountain-owner/:userId', authMiddleware, roleMiddleware(['admin']), adminController.approveMountainOwner);
+//router.put('/approve-mountain-owner/:userId', authMiddleware, adminController.approveMountainOwner);
 
 // Demote a Mountain Owner
-//router.put('/demote-mountain-owner/:userId', authMiddleware, roleMiddleware(['admin']), adminController.demoteMountainOwner);
-router.put('/demote-mountain-owner/:userId', authMiddleware, adminController.demoteMountainOwner);
+router.put('/demote-mountain-owner/:userId', authMiddleware, roleMiddleware(['admin']), adminController.demoteMountainOwner);
+//router.put('/demote-mountain-owner/:userId', authMiddleware, adminController.demoteMountainOwner);
 
 // Suspend a User
 router.put('/suspend-user/:userId', authMiddleware, roleMiddleware(['admin']), adminController.suspendUser);
@@ -21,7 +21,7 @@ router.put('/unsuspend-user/:userId', authMiddleware, roleMiddleware(['admin']),
 
 // Delete a User
 router.delete('/delete-user/:userId', authMiddleware, roleMiddleware(['admin']), adminController.deleteUser);
-
+//router.delete('/delete-user/:userId', authMiddleware, adminController.deleteUser);
 //delete a users post (admin)
 router.delete('/:postId', authMiddleware, postController.deletePost);
 
@@ -42,6 +42,8 @@ router.delete('/mountain-requests/:id/deny', authMiddleware, roleMiddleware(['ad
 
 //search users
 router.get('/search', authMiddleware, adminController.searchUsers);
+
+router.get('/userTypeByID', authMiddleware, adminController.getUserRole );
 
 
 module.exports = router;
