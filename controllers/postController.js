@@ -501,5 +501,56 @@ exports.reportPost = async (req, res) => {
     }
 };
 
+exports.getAllPostsInDatabase = async (req, res) => {
+    try {
+        console.log("Received request to fetch all posts in the database");
+
+        // Fetch all posts in the database
+        console.log("Fetching posts from the database...");
+        const posts = await Post.find()
+            .sort({ createdAt: -1 })  // Sort posts by creation date
+            .lean()  // Convert to plain JavaScript objects
+            .select('postID userID type title routeID sessionID createdAt likes comments textContent'); // Specify fields to retrieve
+        
+        console.log(`Fetched ${posts.length} posts from the database`);
+
+        // Populate session data for performance posts
+        console.log("Fetching session data for performance posts...");
+        const postsWithDetails = await Promise.all(posts.map(async (post) => {
+            if (post.type === 'performance') {
+                console.log(`Fetching session data for postID: ${post.postID}, sessionID: ${post.sessionID}`);
+
+                // Fetch session data for performance posts
+                const session = await Metrics.findOne({ sessionID: post.sessionID }).select('-__v');
+                
+                if (session) {
+                    console.log(`Session data found for postID: ${post.postID}, sessionID: ${post.sessionID}`);
+                    // Flatten the session data directly into the post object
+                    post = { 
+                        ...post, 
+                        sessionID: session.sessionID, 
+                        topSpeed: session.sessionData?.topSpeed, 
+                        distance: session.sessionData?.distance, 
+                        elevationGain: session.sessionData?.elevationGain, 
+                        duration: session.sessionData?.duration 
+                    };
+                } else {
+                    console.log(`No session data found for postID: ${post.postID}, sessionID: ${post.sessionID}`);
+                }
+            } else {
+                console.log(`PostID: ${post.postID} is not a performance post, skipping session data fetch`);
+            }
+            return post;
+        }));
+
+        console.log("Fetched all posts with session details:", postsWithDetails.length);
+        res.status(200).json(postsWithDetails);  // Send the posts as the response
+    } catch (error) {
+        console.error("Error in getAllPostsInDatabase", error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
 
 

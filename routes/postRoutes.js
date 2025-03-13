@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const postController = require('../controllers/postController');
 const authMiddleware = require('../middleware/authMiddleware');
+const roleMiddleware = require('../middleware/roleMiddleware');
 
 // Create a text post
 router.post('/text', authMiddleware, postController.createTextPost);
@@ -37,5 +38,8 @@ router.get('/friends', authMiddleware, postController.getFriendsPosts);
 
 // Report a post
 router.post('/report/:postId', authMiddleware, postController.reportPost);
+
+//get all posts for admin to view
+router.get('/getEveryPost', authMiddleware, roleMiddleware(['admin']), postController.getAllPostsInDatabase);
 
 module.exports = router;

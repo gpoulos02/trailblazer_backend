@@ -46,4 +46,6 @@ router.get('/search', authMiddleware, adminController.searchUsers);
 router.get('/userTypeByID', authMiddleware, adminController.getUserRole );
 
 
+
+
 module.exports = router;

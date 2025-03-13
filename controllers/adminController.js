@@ -519,3 +519,6 @@ exports.getUserRole = async (req, res) => {
     }
 };
 
+// Retrieve all posts in the database
+
+
