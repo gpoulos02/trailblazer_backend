@@ -179,35 +179,55 @@ exports.searchUsers = async (req, res) => {
     try {
         const { query } = req.query;
         
-        console.log("Entered try block");
-        console.log("Received search query:", query);
+        //console.log("Entered try block");
+        //console.log("Received search query:", query);
         
         if (!query) {
             console.log("Query missing, sending 400 response");
             return res.status(400).json({ message: "Search query is required." });
         }
 
+        // Fetch users from the database
+        //console.log("Fetching users from the database...");
         const users = await User.find().select("username firstName lastName _id");
 
-        console.log("Fetched users from DB:", users.length);
+        //console.log("Fetched users from DB:", users.length);
+        if (users.length === 0) {
+            console.log("No users found in the database.");
+        }
 
+        // Initialize Fuse.js for searching
         const fuse = new Fuse(users, {
             keys: ["username", "firstName", "lastName"],
             threshold: 0.3,
             includeScore: true,
         });
 
+        console.log("Fuse.js search initialized with options:", {
+            keys: ["username", "firstName", "lastName"],
+            threshold: 0.3
+        });
+
+        // Perform the search
+        //console.log("Performing search for query:", query);
         const results = fuse.search(query);
+
+        //console.log("Fuse.js search completed.");
+        console.log("Number of results found:", results.length);
+
+        // Mapping results
         const matchedUsers = results.map(result => result.item);
 
-        console.log("Search results:", matchedUsers.length);
+        console.log("Matched users:", matchedUsers);
 
+        // Return matched users
         res.status(200).json(matchedUsers);
     } catch (error) {
         console.error("Error in searchUsers:", error);
         res.status(500).json({ message: "Server error.", error: error.toString() });
     }
 };
+
 
 exports.getUserIDFromUsername = async (req, res) => {
     try {

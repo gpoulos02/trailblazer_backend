@@ -6,10 +6,12 @@ const adminController = require('../controllers/adminController');
 const postController = require("../controllers/postController")
 
 // Approve a Mountain Owner
-router.put('/approve-mountain-owner/:userId', authMiddleware, roleMiddleware(['admin']), adminController.approveMountainOwner);
+//router.put('/approve-mountain-owner/:userId', authMiddleware, roleMiddleware(['admin']), adminController.approveMountainOwner);
+router.put('/approve-mountain-owner/:userId', authMiddleware, adminController.approveMountainOwner);
 
 // Demote a Mountain Owner
-router.put('/demote-mountain-owner/:userId', authMiddleware, roleMiddleware(['admin']), adminController.demoteMountainOwner);
+//router.put('/demote-mountain-owner/:userId', authMiddleware, roleMiddleware(['admin']), adminController.demoteMountainOwner);
+router.put('/demote-mountain-owner/:userId', authMiddleware, adminController.demoteMountainOwner);
 
 // Suspend a User
 router.put('/suspend-user/:userId', authMiddleware, roleMiddleware(['admin']), adminController.suspendUser);
@@ -37,6 +39,9 @@ router.post('/mountain-requests/:id/accept', authMiddleware, roleMiddleware(['ad
 
 //deny request
 router.delete('/mountain-requests/:id/deny', authMiddleware, roleMiddleware(['admin']), adminController.denyMountainRequest);
+
+//search users
+router.get('/search', authMiddleware, adminController.searchUsers);
 
 
 module.exports = router;
