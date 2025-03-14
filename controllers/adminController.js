@@ -1,81 +1,113 @@
-const Post = require("../models/Post");
-const MountainRequest = require("../models/MountainRequest");
-const Report = require("../models/Report");
-const User = require("../models/User");
-const sendEmail = require("../utils/emailService");
-const Mountain = require("../models/Mountain");
-const PointOfInterest = require("../models/PointOfInterest");
-const { sendNotification } = require("../utils/notificationUtils");
 
-// Approve a Mountain Owner
+const Post = require('../models/Post');
+const MountainRequest = require('../models/MountainRequest'); 
+const Report = require('../models/Report');
+const User = require('../models/User');
+const sendEmail = require('../utils/emailService');
+const Fuse = require('fuse.js');
+const { sendNotification } = require('../utils/notificationUtils');
+
+
 exports.approveMountainOwner = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    try {
+        console.log('Attempting to approve Mountain Owner for userId:', req.params.userId);  // Debug: log the userId being processed
+        
+        // Find the user by ID
+        const user = await User.findById(req.params.userId);
+        
+        if (!user) {
+            console.log('User not found with userId:', req.params.userId);  // Debug: log if user not found
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log('User found:', user);  // Debug: log the user object when found
+
+        // Check if the user is already a Mountain Owner
+        if (user.role === 'mountain_owner') {
+            console.log('User is already a Mountain Owner');  // Debug: log if user is already a Mountain Owner
+            return res.status(400).json({ message: 'User is already a Mountain Owner' });
+        }
+
+        // Update the user's role to 'mountain_owner'
+        user.role = 'mountain_owner';
+        await user.save();
+
+        console.log('User role updated to mountain_owner.');  // Debug: log that the user's role has been updated
+
+        // Send approval email
+        await sendEmail(
+            user.email,
+            'Mountain Owner Approval',
+            `Hello ${user.firstName},\n\nCongratulations! You have been approved as a Mountain Owner. You now have access to additional features within the TrailBlazer app.\n\nRegards,\nTrailBlazer Team`
+        );
+        console.log('Approval email sent to:', user.email);  // Debug: log that the email was sent
+
+        // Send in-app notification
+        await sendNotification(
+            user._id,
+            'system_alert',
+            '',
+            'Mountain Owner Approval',
+            'You have been approved as a Mountain Owner!'
+        );
+        console.log('In-app notification sent to userId:', user._id);  // Debug: log that the notification was sent
+
+        // Send successful response
+        res.json({ message: 'User promoted to Mountain Owner and notified' });
+        console.log('Response sent: User promoted and notified');  // Debug: log response sent
+
+    } catch (error) {
+        console.error('Error in approveMountainOwner:', error);  // Debug: log error
+        res.status(500).json({ message: 'Server error' });
     }
-
-    user.role = "mountain_owner";
-    await user.save();
-
-    // Send approval email
-    await sendEmail(
-      user.email,
-      "Mountain Owner Approval",
-      `Hello ${user.firstName},\n\nCongratulations! You have been approved as a Mountain Owner. You now have access to additional features within the TrailBlazer app.\n\nRegards,\nTrailBlazer Team`
-    );
-
-    // Send in-app notification
-    await sendNotification(
-      user._id,
-      "system_alert",
-      "",
-      "Mountain Owner Approval",
-      "You have been approved as a Mountain Owner!"
-    );
-
-    res.json({ message: "User promoted to Mountain Owner and notified" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
 };
 
-// Approve a Mountain Owner
+
+
+// Approve a Mountain Owner 
 exports.demoteMountainOwner = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    try {
+        // Find the user by their ID (from the request parameters)
+        const user = await User.findById(req.params.userId);
+        
+        // If the user is not found, return a 404 status with an error message
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // If the user is found, change their role to "user"
+        user.role = 'user';
+
+        // Save the updated user information to the database
+        await user.save();
+
+        // Send an email notification about the demotion
+        await sendEmail(
+            user.email,
+            'Mountain Owner Demotion',
+            `Hello ${user.firstName},\n\nUnfortunately, You have been demoted as a Mountain Owner. You now no longer have access to additional features within the TrailBlazer app.\n\nRegards,\nTrailBlazer Team`
+        );
+
+        // Send an in-app notification about the demotion
+        await sendNotification(
+            user._id,
+            'system_alert',
+            '',
+            'Mountain Owner Demotion',
+            'You have been demoted from being a Mountain Owner!'
+        );
+
+        // Return a success response
+        res.json({ message: 'User demoted from Mountain Owner and notified' });
+    } catch (error) {
+        // Log and return a 500 server error if something goes wrong
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
     }
-
-    user.role = "user";
-    await user.save();
-
-    // Send  email
-    await sendEmail(
-      user.email,
-      "Mountain Owner Demotion",
-      `Hello ${user.firstName},\n\nUnfortunately, You have been demoted as a Mountain Owner. You now no longer have access to additional features within the TrailBlazer app.\n\nRegards,\nTrailBlazer Team`
-    );
-
-    // Send in-app notification
-    await sendNotification(
-      user._id,
-      "system_alert",
-      "",
-      "Mountain Owner Demotion",
-      "You have been demoted from being a Mountain Owner!"
-    );
-
-    res.json({ message: "User demoted from Mountain Owner and notified" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
 };
 
-// Suspend a User
+
+      
 exports.suspendUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -433,3 +465,95 @@ const createPointOfInterest = async (poi, mountainID) => {
     throw new Error("Error saving POI");
   }
 };
+
+exports.searchUsers = async (req, res) => {
+    try {
+        const { query } = req.query;
+        
+        //console.log("Entered try block");
+        //console.log("Received search query:", query);
+        
+        if (!query) {
+            console.log("Query missing, sending 400 response");
+            return res.status(400).json({ message: "Search query is required." });
+        }
+
+        // Fetch users from the database
+        //console.log("Fetching users from the database...");
+        const users = await User.find().select("username firstName lastName _id role");
+
+        //console.log("Fetched users from DB:", users.length);
+        if (users.length === 0) {
+            console.log("No users found in the database.");
+        }
+
+        // Initialize Fuse.js for searching
+        const fuse = new Fuse(users, {
+            keys: ["username", "firstName", "lastName"],
+            threshold: 0.3,
+            includeScore: true,
+        });
+
+        console.log("Fuse.js search initialized with options:", {
+            keys: ["username", "firstName", "lastName"],
+            threshold: 0.3
+        });
+
+        // Perform the search
+        //console.log("Performing search for query:", query);
+        const results = fuse.search(query);
+
+        //console.log("Fuse.js search completed.");
+        console.log("Number of results found:", results.length);
+
+        // Mapping results
+        const matchedUsers = results.map(result => result.item);
+
+        console.log("Matched users:", matchedUsers);
+
+        // Return matched users
+        res.status(200).json(matchedUsers);
+    } catch (error) {
+        console.error("Error in searchUsers:", error);
+        res.status(500).json({ message: "Server error.", error: error.toString() });
+    }
+};
+
+
+
+//get user role type by id 
+exports.getUserRole = async (req, res) => {
+    try {
+        const userId = req.user.userID;
+        console.log(' Request to get user role received');
+
+        // Check if userId is set in the auth middleware
+        
+        console.log(' Decoded userId:', userId);
+
+        if (!userId) {
+            console.log('No userId found in request');
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        // Find the user by ID
+        const user = await User.findOne({userID: userId});
+        if (!user) {
+            console.log(' User not found for userId:', userId);
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        console.log('User found:', user);
+
+        // Return the user's role
+        res.status(200).json({ role: user.role });
+        console.log('User role sent:', user.role);
+    } catch (error) {
+        console.error('Error fetching user role:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Retrieve all posts in the database
+
+
