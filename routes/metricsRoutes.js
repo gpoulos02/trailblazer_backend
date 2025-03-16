@@ -39,5 +39,8 @@ router.get(
   metricsController.getAverageDifficulty
 );
 
+router.get("/trail-names", authMiddleware, metricsController.getRoutesByMountain);
+
+
 module.exports = router;
 

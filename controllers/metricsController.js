@@ -373,4 +373,46 @@ exports.getAverageDifficulty = async (req, res) => {
   }
 };
 
+exports.getRoutesByMountain = async (req, res) => {
+  try {
+    const { mountainID } = req.query; // Extract mountainID from query params
+
+    console.log("Received request for trails with mountainID:", mountainID);
+
+    // Ensure mountainID is provided
+    if (!mountainID) {
+      return res.status(400).json({ message: "Mountain ID is required." });
+    }
+
+    // Convert to number and validate
+    const numericMountainID = Number(mountainID);
+    if (isNaN(numericMountainID)) {
+      return res.status(400).json({ message: "Invalid Mountain ID format." });
+    }
+
+    console.log("Querying trails for mountainID:", numericMountainID);
+
+    // Query database to get trails that belong to the given mountainID
+    const trails = await Trail.find({ mountainID: numericMountainID }).select("runName mountainID");
+
+    if (!trails.length) {
+      console.warn(`No trails found for mountainID: ${numericMountainID}`);
+      return res.status(404).json({ message: "No trails found for this mountain." });
+    }
+
+    console.log(`Found ${trails.length} trails for mountainID ${numericMountainID}`);
+
+    // Return only trails for the requested mountain
+    res.json({
+      message: "Route names retrieved successfully",
+      routes: trails.map(trail => trail.runName),
+    });
+
+  } catch (error) {
+    console.error("Error fetching trails by mountainID:", error);
+    res.status(500).json({ message: "Server error while retrieving routes." });
+  }
+};
+
+
 module.exports = exports;
