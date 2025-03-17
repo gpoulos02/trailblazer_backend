@@ -2,6 +2,8 @@ const Chairlift = require('../models/Chairlift');
 const Mountain = require('../models/Mountain');
 
 // Add multiple chairlifts
+
+// Add multiple chairlifts
 exports.addChairlifts = async (req, res) => {
     try {
         const { chairlifts, mountainID } = req.body;
@@ -16,8 +18,16 @@ exports.addChairlifts = async (req, res) => {
             return res.status(404).json({ message: "Mountain not found." });
         }
 
-        // Attach mountainID to each chairlift
-        const chairliftsWithMountain = chairlifts.map(chairlift => ({ ...chairlift, mountainID }));
+        // Get the current highest liftID in the database
+        const lastChairlift = await Chairlift.findOne({}, {}, { sort: { liftID: -1 } });
+        let nextLiftID = lastChairlift ? lastChairlift.liftID + 1 : 1;
+
+        // Attach mountainID and assign unique liftID to each chairlift
+        const chairliftsWithMountain = chairlifts.map(chairlift => ({
+            ...chairlift,
+            mountainID,
+            liftID: nextLiftID++ // Assign and increment liftID
+        }));
 
         // Insert chairlifts
         const insertedChairlifts = await Chairlift.insertMany(chairliftsWithMountain);

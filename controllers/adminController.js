@@ -1,113 +1,116 @@
+const Post = require("../models/Post");
+const MountainRequest = require("../models/MountainRequest");
+const Report = require("../models/Report");
+const User = require("../models/User");
+const sendEmail = require("../utils/emailService");
+const Fuse = require("fuse.js");
+const Mountain = require("../models/Mountain");
+const PointOfInterest = require("../models/PointOfInterest");
+const Chairlift = require("../models/Chairlift");
+const Trail = require("../models/Trail");
 
-const Post = require('../models/Post');
-const MountainRequest = require('../models/MountainRequest'); 
-const Report = require('../models/Report');
-const User = require('../models/User');
-const sendEmail = require('../utils/emailService');
-const Fuse = require('fuse.js');
-const { sendNotification } = require('../utils/notificationUtils');
-
+const { sendNotification } = require("../utils/notificationUtils");
 
 exports.approveMountainOwner = async (req, res) => {
-    try {
-        console.log('Attempting to approve Mountain Owner for userId:', req.params.userId);  // Debug: log the userId being processed
-        
-        // Find the user by ID
-        const user = await User.findById(req.params.userId);
-        
-        if (!user) {
-            console.log('User not found with userId:', req.params.userId);  // Debug: log if user not found
-            return res.status(404).json({ message: 'User not found' });
-        }
+  try {
+    console.log(
+      "Attempting to approve Mountain Owner for userId:",
+      req.params.userId
+    ); // Debug: log the userId being processed
 
-        console.log('User found:', user);  // Debug: log the user object when found
+    // Find the user by ID
+    const user = await User.findById(req.params.userId);
 
-        // Check if the user is already a Mountain Owner
-        if (user.role === 'mountain_owner') {
-            console.log('User is already a Mountain Owner');  // Debug: log if user is already a Mountain Owner
-            return res.status(400).json({ message: 'User is already a Mountain Owner' });
-        }
-
-        // Update the user's role to 'mountain_owner'
-        user.role = 'mountain_owner';
-        await user.save();
-
-        console.log('User role updated to mountain_owner.');  // Debug: log that the user's role has been updated
-
-        // Send approval email
-        await sendEmail(
-            user.email,
-            'Mountain Owner Approval',
-            `Hello ${user.firstName},\n\nCongratulations! You have been approved as a Mountain Owner. You now have access to additional features within the TrailBlazer app.\n\nRegards,\nTrailBlazer Team`
-        );
-        console.log('Approval email sent to:', user.email);  // Debug: log that the email was sent
-
-        // Send in-app notification
-        await sendNotification(
-            user._id,
-            'system_alert',
-            '',
-            'Mountain Owner Approval',
-            'You have been approved as a Mountain Owner!'
-        );
-        console.log('In-app notification sent to userId:', user._id);  // Debug: log that the notification was sent
-
-        // Send successful response
-        res.json({ message: 'User promoted to Mountain Owner and notified' });
-        console.log('Response sent: User promoted and notified');  // Debug: log response sent
-
-    } catch (error) {
-        console.error('Error in approveMountainOwner:', error);  // Debug: log error
-        res.status(500).json({ message: 'Server error' });
+    if (!user) {
+      console.log("User not found with userId:", req.params.userId); // Debug: log if user not found
+      return res.status(404).json({ message: "User not found" });
     }
+
+    console.log("User found:", user); // Debug: log the user object when found
+
+    // Check if the user is already a Mountain Owner
+    if (user.role === "mountain_owner") {
+      console.log("User is already a Mountain Owner"); // Debug: log if user is already a Mountain Owner
+      return res
+        .status(400)
+        .json({ message: "User is already a Mountain Owner" });
+    }
+
+    // Update the user's role to 'mountain_owner'
+    user.role = "mountain_owner";
+    await user.save();
+
+    console.log("User role updated to mountain_owner."); // Debug: log that the user's role has been updated
+
+    // Send approval email
+    await sendEmail(
+      user.email,
+      "Mountain Owner Approval",
+      `Hello ${user.firstName},\n\nCongratulations! You have been approved as a Mountain Owner. You now have access to additional features within the TrailBlazer app.\n\nRegards,\nTrailBlazer Team`
+    );
+    console.log("Approval email sent to:", user.email); // Debug: log that the email was sent
+
+    // Send in-app notification
+    await sendNotification(
+      user._id,
+      "system_alert",
+      "",
+      "Mountain Owner Approval",
+      "You have been approved as a Mountain Owner!"
+    );
+    console.log("In-app notification sent to userId:", user._id); // Debug: log that the notification was sent
+
+    // Send successful response
+    res.json({ message: "User promoted to Mountain Owner and notified" });
+    console.log("Response sent: User promoted and notified"); // Debug: log response sent
+  } catch (error) {
+    console.error("Error in approveMountainOwner:", error); // Debug: log error
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
-
-
-// Approve a Mountain Owner 
+// Approve a Mountain Owner
 exports.demoteMountainOwner = async (req, res) => {
-    try {
-        // Find the user by their ID (from the request parameters)
-        const user = await User.findById(req.params.userId);
-        
-        // If the user is not found, return a 404 status with an error message
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+  try {
+    // Find the user by their ID (from the request parameters)
+    const user = await User.findById(req.params.userId);
 
-        // If the user is found, change their role to "user"
-        user.role = 'user';
-
-        // Save the updated user information to the database
-        await user.save();
-
-        // Send an email notification about the demotion
-        await sendEmail(
-            user.email,
-            'Mountain Owner Demotion',
-            `Hello ${user.firstName},\n\nUnfortunately, You have been demoted as a Mountain Owner. You now no longer have access to additional features within the TrailBlazer app.\n\nRegards,\nTrailBlazer Team`
-        );
-
-        // Send an in-app notification about the demotion
-        await sendNotification(
-            user._id,
-            'system_alert',
-            '',
-            'Mountain Owner Demotion',
-            'You have been demoted from being a Mountain Owner!'
-        );
-
-        // Return a success response
-        res.json({ message: 'User demoted from Mountain Owner and notified' });
-    } catch (error) {
-        // Log and return a 500 server error if something goes wrong
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+    // If the user is not found, return a 404 status with an error message
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    // If the user is found, change their role to "user"
+    user.role = "user";
+
+    // Save the updated user information to the database
+    await user.save();
+
+    // Send an email notification about the demotion
+    await sendEmail(
+      user.email,
+      "Mountain Owner Demotion",
+      `Hello ${user.firstName},\n\nUnfortunately, You have been demoted as a Mountain Owner. You now no longer have access to additional features within the TrailBlazer app.\n\nRegards,\nTrailBlazer Team`
+    );
+
+    // Send an in-app notification about the demotion
+    await sendNotification(
+      user._id,
+      "system_alert",
+      "",
+      "Mountain Owner Demotion",
+      "You have been demoted from being a Mountain Owner!"
+    );
+
+    // Return a success response
+    res.json({ message: "User demoted from Mountain Owner and notified" });
+  } catch (error) {
+    // Log and return a 500 server error if something goes wrong
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
-
-      
 exports.suspendUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -328,36 +331,148 @@ exports.acceptMountainRequest = async (req, res) => {
     if (request.pointsOfInterest && Array.isArray(request.pointsOfInterest)) {
       for (const poiGroup of request.pointsOfInterest) {
         if (poiGroup.pois && Array.isArray(poiGroup.pois)) {
-          // Iterate over each POI in the pois array
           for (const poi of poiGroup.pois) {
-            // Validate that POI has the necessary fields
             if (!poi.type || !poi.POI_name || !poi.POI_id) {
               console.error("Invalid POI data:", poi);
-              continue; // Skip this POI if validation fails
+              continue;
             }
 
-            // Create and save POI
-            const newPOI = new PointOfInterest({
-              mountainID: newMountainID,
-              POI_id: poi.POI_id,
-              POI_name: poi.POI_name,
-              type: poi.type,
-            });
-
-            await newPOI.save();
-            console.log("POI saved successfully:", newPOI);
+            try {
+              const newPOI = new PointOfInterest({
+                mountainID: newMountainID,
+                POI_id: poi.POI_id,
+                POI_name: poi.POI_name,
+                type: poi.type,
+              });
+              await newPOI.save();
+              console.log("POI saved successfully:", newPOI);
+            } catch (poiError) {
+              console.error("Error saving POI:", poiError);
+              continue; // Skip to the next POI on error
+            }
           }
         }
       }
     }
 
+    // Process and integrate Trails
+    if (request.trails && Array.isArray(request.trails)) {
+      for (const trailData of request.trails) {
+        const trails = Array.isArray(trailData.trails)
+          ? trailData.trails
+          : request.trails;
+        for (const trail of trails) {
+          if (!trail.runID || !trail.runName || !trail.difficulty) {
+            console.error("Invalid Trail data:", trail);
+            continue;
+          }
+
+          try {
+            // Handle parentTrail: expects a single number, extract from array if necessary
+            let parentTrailValue = trail.parentTrail;
+            if (Array.isArray(parentTrailValue)) {
+              parentTrailValue =
+                parentTrailValue.length > 0 ? parentTrailValue[0] : null;
+            }
+
+            // Handle childTrails: expects an array, ensure it’s an array
+            let childTrailsValue = trail.childTrails || [];
+            if (!Array.isArray(childTrailsValue)) {
+              childTrailsValue = childTrailsValue ? [childTrailsValue] : [];
+            }
+
+            // Handle endingPoints: expects an array, ensure it’s an array
+            let endingPointsValue = trail.endingPoints || [];
+            if (!Array.isArray(endingPointsValue)) {
+              endingPointsValue = endingPointsValue ? [endingPointsValue] : [];
+            }
+
+            // Handle mergesTo: expects an array, ensure it’s an array
+            let mergesToValue = trail.mergesTo || [];
+            if (!Array.isArray(mergesToValue)) {
+              mergesToValue = mergesToValue ? [mergesToValue] : [];
+            }
+
+            const newTrail = new Trail({
+              mountainID: newMountainID,
+              runID: trail.runID,
+              runName: trail.runName,
+              difficulty: trail.difficulty,
+              startingLift: trail.startingLift,
+              parentTrail: parentTrailValue,
+              childTrails: childTrailsValue,
+              endingPoints: endingPointsValue,
+              isEnd: trail.isEnd || false,
+              mergesTo: mergesToValue,
+            });
+
+            await newTrail.save();
+            console.log("Trail saved successfully:", newTrail);
+          } catch (trailError) {
+            console.error("Error saving Trail:", trailError);
+            continue; // Skip to the next trail on error
+          }
+        }
+        break; // Exit after processing the first trails array if nested
+      }
+    }
+
+    // Process and integrate Chairlifts
+    if (request.chairlifts && Array.isArray(request.chairlifts)) {
+      for (const chairliftData of request.chairlifts) {
+        const chairlifts = Array.isArray(chairliftData.chairlifts)
+          ? chairliftData.chairlifts
+          : request.chairlifts;
+        for (const chairlift of chairlifts) {
+          if (!chairlift.liftID || !chairlift.liftName) {
+            console.error("Invalid Chairlift data:", chairlift);
+            continue;
+          }
+
+          try {
+            // Handle topTrails: expects an array, ensure it’s an array
+            let topTrailsValue = chairlift.topTrails || [];
+            if (!Array.isArray(topTrailsValue)) {
+              topTrailsValue = topTrailsValue ? [topTrailsValue] : [];
+            }
+
+            // Handle bottomPOI: expects an array, ensure it’s an array
+            let bottomPOIValue = chairlift.bottomPOI || [];
+            if (!Array.isArray(bottomPOIValue)) {
+              bottomPOIValue = bottomPOIValue ? [bottomPOIValue] : [];
+            }
+
+            const newChairlift = new Chairlift({
+              mountainID: newMountainID,
+              liftID: chairlift.liftID,
+              liftName: chairlift.liftName,
+              topTrails: topTrailsValue,
+              bottomPOI: bottomPOIValue,
+            });
+
+            await newChairlift.save();
+            console.log("Chairlift saved successfully:", newChairlift);
+          } catch (chairliftError) {
+            console.error("Error saving Chairlift:", chairliftError);
+            continue; // Skip to the next chairlift on error
+          }
+        }
+        break; // Exit after processing the first chairlifts array if nested
+      }
+    }
+
+    // Delete the request after successful processing
+    await MountainRequest.findByIdAndDelete(req.params.id);
+
     // Respond with success message
-    res
-      .status(200)
-      .json({ message: "Mountain request accepted and POIs integrated" });
+    res.status(200).json({
+      message:
+        "Mountain request accepted, POIs, trails, and chairlifts integrated",
+      mountainID: newMountainID,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error in acceptMountainRequest:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -467,93 +582,91 @@ const createPointOfInterest = async (poi, mountainID) => {
 };
 
 exports.searchUsers = async (req, res) => {
-    try {
-        const { query } = req.query;
-        
-        //console.log("Entered try block");
-        //console.log("Received search query:", query);
-        
-        if (!query) {
-            console.log("Query missing, sending 400 response");
-            return res.status(400).json({ message: "Search query is required." });
-        }
+  try {
+    const { query } = req.query;
 
-        // Fetch users from the database
-        //console.log("Fetching users from the database...");
-        const users = await User.find().select("username firstName lastName _id role");
+    //console.log("Entered try block");
+    //console.log("Received search query:", query);
 
-        //console.log("Fetched users from DB:", users.length);
-        if (users.length === 0) {
-            console.log("No users found in the database.");
-        }
-
-        // Initialize Fuse.js for searching
-        const fuse = new Fuse(users, {
-            keys: ["username", "firstName", "lastName"],
-            threshold: 0.3,
-            includeScore: true,
-        });
-
-        console.log("Fuse.js search initialized with options:", {
-            keys: ["username", "firstName", "lastName"],
-            threshold: 0.3
-        });
-
-        // Perform the search
-        //console.log("Performing search for query:", query);
-        const results = fuse.search(query);
-
-        //console.log("Fuse.js search completed.");
-        console.log("Number of results found:", results.length);
-
-        // Mapping results
-        const matchedUsers = results.map(result => result.item);
-
-        console.log("Matched users:", matchedUsers);
-
-        // Return matched users
-        res.status(200).json(matchedUsers);
-    } catch (error) {
-        console.error("Error in searchUsers:", error);
-        res.status(500).json({ message: "Server error.", error: error.toString() });
+    if (!query) {
+      console.log("Query missing, sending 400 response");
+      return res.status(400).json({ message: "Search query is required." });
     }
+
+    // Fetch users from the database
+    //console.log("Fetching users from the database...");
+    const users = await User.find().select(
+      "username firstName lastName _id role"
+    );
+
+    //console.log("Fetched users from DB:", users.length);
+    if (users.length === 0) {
+      console.log("No users found in the database.");
+    }
+
+    // Initialize Fuse.js for searching
+    const fuse = new Fuse(users, {
+      keys: ["username", "firstName", "lastName"],
+      threshold: 0.3,
+      includeScore: true,
+    });
+
+    console.log("Fuse.js search initialized with options:", {
+      keys: ["username", "firstName", "lastName"],
+      threshold: 0.3,
+    });
+
+    // Perform the search
+    //console.log("Performing search for query:", query);
+    const results = fuse.search(query);
+
+    //console.log("Fuse.js search completed.");
+    console.log("Number of results found:", results.length);
+
+    // Mapping results
+    const matchedUsers = results.map((result) => result.item);
+
+    console.log("Matched users:", matchedUsers);
+
+    // Return matched users
+    res.status(200).json(matchedUsers);
+  } catch (error) {
+    console.error("Error in searchUsers:", error);
+    res.status(500).json({ message: "Server error.", error: error.toString() });
+  }
 };
 
-
-
-//get user role type by id 
+//get user role type by id
 exports.getUserRole = async (req, res) => {
-    try {
-        const userId = req.user.userID;
-        console.log(' Request to get user role received');
+  try {
+    const userId = req.user.userID;
+    console.log(" Request to get user role received");
 
-        // Check if userId is set in the auth middleware
-        
-        console.log(' Decoded userId:', userId);
+    // Check if userId is set in the auth middleware
 
-        if (!userId) {
-            console.log('No userId found in request');
-            return res.status(401).json({ message: 'Unauthorized' });
-        }
+    console.log(" Decoded userId:", userId);
 
-        // Find the user by ID
-        const user = await User.findOne({userID: userId});
-        if (!user) {
-            console.log(' User not found for userId:', userId);
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        console.log('User found:', user);
-
-        // Return the user's role
-        res.status(200).json({ role: user.role });
-        console.log('User role sent:', user.role);
-    } catch (error) {
-        console.error('Error fetching user role:', error);
-        res.status(500).json({ message: 'Server error' });
+    if (!userId) {
+      console.log("No userId found in request");
+      return res.status(401).json({ message: "Unauthorized" });
     }
+
+    // Find the user by ID
+    const user = await User.findOne({ userID: userId });
+    if (!user) {
+      console.log(" User not found for userId:", userId);
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("User found:", user);
+
+    // Return the user's role
+    res.status(200).json({ role: user.role });
+    console.log("User role sent:", user.role);
+  } catch (error) {
+    console.error("Error fetching user role:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 // Retrieve all posts in the database
-
-

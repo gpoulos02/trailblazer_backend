@@ -7,10 +7,9 @@ const mountainRequestSchema = new mongoose.Schema({
     longitude: { type: Number, required: true },
   },
   description: { type: String, required: true },
-  geoJson: { type: Object, required: true }, // Store parsed GeoJSON
-  trails: { type: Array, required: true }, // Store parsed trails data
-  pointsOfInterest: { type: Array, required: true }, // Store parsed POIs
-  chairlifts: { type: Array, required: true }, // Store parsed chairlifts
+  trails: { type: Array, required: true },
+  pointsOfInterest: { type: Array, required: true },
+  chairlifts: { type: Array, required: true },
   submittedBy: { type: String, ref: "User", required: true },
   status: {
     type: String,

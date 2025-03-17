@@ -94,7 +94,7 @@
         "runName": "Apple Jack",
         "difficulty": "green",
         "startingLift": 2,
-        "parentTrail": [8],
+        "parentTrail": 8,
         "childTrails": null,
         "endingPoints": [1, 5],
         "isEnd": true,

@@ -6,7 +6,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 // POST: Request a new mountain (Mountain Owner only)
 router.post('/request', authMiddleware, mountainOwnerController.requestNewMountain);
 
-// GET: Get all mountain requests submitted by the logged-in owner
+// GET: Get all mountain requests submitted by the logged-in owner 
 router.get('/my-requests', authMiddleware, mountainOwnerController.getMyMountainRequests);
 
 // GET: Check the status of a specific request
