@@ -154,7 +154,7 @@ exports.sendInactivityAlert = async (req, res) => {
         const notifications = friends.map(friend => ({
             user: friend.userID,
             type: "system_alert",
-            message: `🚨 Your friend ${user.firstName || "Your friend"} has been inactive for too long! Last known location: [${latitude}, ${longitude}]`,
+            message: `Your friend ${user.firstName || "Your friend"} has been inactive for too long! Last known location: [${latitude}, ${longitude}]`,
             timestamp: new Date(),
         }));
 
