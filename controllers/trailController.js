@@ -1,14 +1,14 @@
 const Trail = require("../models/Trail");
+const Mountain = require("../models/Mountain");
 
+// Add multiple trails
 // Add multiple trails
 exports.addTrails = async (req, res) => {
   try {
     const { trails, mountainID } = req.body;
 
     if (!trails || !trails.length || mountainID === undefined) {
-      return res
-        .status(400)
-        .json({ message: "Trails and mountainID are required." });
+      return res.status(400).json({ message: "Trails and mountainID are required." });
     }
 
     // Validate that mountainID exists
@@ -17,10 +17,15 @@ exports.addTrails = async (req, res) => {
       return res.status(404).json({ message: "Mountain not found." });
     }
 
-    // Attach mountainID to each trail
+    // Get the current highest runID in the database
+    const lastTrail = await Trail.findOne({}, {}, { sort: { runID: -1 } });
+    let nextRunID = lastTrail ? lastTrail.runID + 1 : 1;
+
+    // Attach mountainID and assign a unique runID to each trail
     const trailsWithMountain = trails.map((trail) => ({
       ...trail,
       mountainID,
+      runID: nextRunID++ // Assign and increment runID
     }));
 
     // Insert trails

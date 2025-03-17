@@ -6,7 +6,6 @@ const upload = multer().fields([
   { name: "trailsFile", maxCount: 1 },
   { name: "pointsOfInterestFile", maxCount: 1 },
   { name: "chairliftsFile", maxCount: 1 },
-  { name: "geoJsonFile", maxCount: 1 },
 ]);
 
 exports.requestNewMountain = async (req, res) => {
@@ -18,33 +17,36 @@ exports.requestNewMountain = async (req, res) => {
           .json({ message: "File upload error.", error: err });
       }
 
-      const { name, location, description } = req.body;
+      const { name, latitude, longitude, description } = req.body;
 
       const user = await User.findOne({ userID: req.user.userID });
       if (!user || user.role !== "mountain_owner") {
         return res.status(403).json({
-          message:
-            "Unauthorized. Only mountain owners can request new mountains.",
+          message: "Unauthorized. Only mountain owners can request new mountains.",
         });
       }
 
-      if (!name || !location || !description || !req.files) {
+      if (!name || !latitude || !longitude || !description || !req.files) {
         return res
           .status(400)
           .json({ message: "Missing required fields or files." });
       }
 
-      // Helper function to parse JSON files
+      const lat = parseFloat(latitude);
+      const lon = parseFloat(longitude);
+      if (isNaN(lat) || isNaN(lon)) {
+        return res
+          .status(400)
+          .json({ message: "Invalid latitude or longitude values." });
+      }
+
       const parseJSONFile = (file) =>
         file ? JSON.parse(file.buffer.toString()) : [];
 
       const newRequest = new MountainRequest({
         name,
-        location: JSON.parse(location),
+        location: { latitude: lat, longitude: lon },
         description,
-        geoJson: parseJSONFile(
-          req.files.geoJsonFile ? req.files.geoJsonFile[0] : null
-        ),
         trails: parseJSONFile(
           req.files.trailsFile ? req.files.trailsFile[0] : null
         ),
@@ -56,7 +58,7 @@ exports.requestNewMountain = async (req, res) => {
         chairlifts: parseJSONFile(
           req.files.chairliftsFile ? req.files.chairliftsFile[0] : null
         ),
-        submittedBy: req.user.userID,
+        submittedBy: req.user.userID, // Already using userID string
         status: "pending",
       });
 
@@ -73,7 +75,6 @@ exports.requestNewMountain = async (req, res) => {
   });
 };
 
-// Get all requests submitted by the current mountain owner
 exports.getMyMountainRequests = async (req, res) => {
   try {
     const user = await User.findOne({ userID: req.user.userID });
@@ -82,7 +83,7 @@ exports.getMyMountainRequests = async (req, res) => {
     }
 
     const requests = await MountainRequest.find({
-      submittedBy: req.user.userID,
+      submittedBy: req.user.userID, // Already using userID string
     });
 
     res.status(200).json(requests);
@@ -92,15 +93,12 @@ exports.getMyMountainRequests = async (req, res) => {
   }
 };
 
-// Get the status of a specific request by ID
 exports.getRequestStatus = async (req, res) => {
   try {
     const { requestId } = req.params;
-
-    // Find request and ensure it belongs to the logged-in mountain owner
     const request = await MountainRequest.findOne({
       _id: requestId,
-      submittedBy: req.user.userId,
+      submittedBy: req.user.userID, // Already using userID string
     });
 
     if (!request) {
@@ -119,24 +117,14 @@ exports.getRequestStatus = async (req, res) => {
   }
 };
 
-// Update a mountain request (Mountain Owner Only)
 exports.updateMountainRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
-    const {
-      name,
-      location,
-      description,
-      geoJson,
-      trails,
-      pointsOfInterest,
-      chairlifts,
-    } = req.body;
+    const { name, latitude, longitude, description, trails, pointsOfInterest, chairlifts } = req.body;
 
-    // Find the request and ensure it belongs to the logged-in mountain owner
     const request = await MountainRequest.findOne({
       _id: requestId,
-      submittedBy: req.user.userId,
+      submittedBy: req.user.userID, // Already using userID string
     });
 
     if (!request) {
@@ -147,16 +135,19 @@ exports.updateMountainRequest = async (req, res) => {
 
     if (request.status !== "pending") {
       return res.status(400).json({
-        message:
-          "Cannot edit a request that has already been approved or rejected.",
+        message: "Cannot edit a request that has already been approved or rejected.",
       });
     }
 
-    // Update request fields
     if (name) request.name = name;
-    if (location) request.location = location;
+    if (latitude && longitude) {
+      const lat = parseFloat(latitude);
+      const lon = parseFloat(longitude);
+      if (!isNaN(lat) && !isNaN(lon)) {
+        request.location = { latitude: lat, longitude: lon };
+      }
+    }
     if (description) request.description = description;
-    if (geoJson) request.geoJson = geoJson;
     if (trails) request.trails = trails;
     if (pointsOfInterest) request.pointsOfInterest = pointsOfInterest;
     if (chairlifts) request.chairlifts = chairlifts;
@@ -173,28 +164,23 @@ exports.updateMountainRequest = async (req, res) => {
   }
 };
 
-// Delete a mountain request (Mountain Owner Only)
 exports.deleteMountainRequest = async (req, res) => {
   try {
     const { requestId } = req.params;
-
-    // Find the request and ensure it belongs to the logged-in mountain owner
     const request = await MountainRequest.findOne({
       _id: requestId,
-      submittedBy: req.user.userId,
+      submittedBy: req.user.userID, // Already using userID string
     });
 
     if (!request) {
       return res.status(404).json({
-        message:
-          "Request not found or you do not have permission to delete it.",
+        message: "Request not found or you do not have permission to delete it.",
       });
     }
 
     if (request.status !== "pending") {
       return res.status(400).json({
-        message:
-          "Cannot delete a request that has already been approved or rejected.",
+        message: "Cannot delete a request that has already been approved or rejected.",
       });
     }
 
