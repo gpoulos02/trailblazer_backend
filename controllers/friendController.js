@@ -179,22 +179,20 @@ exports.searchUsers = async (req, res) => {
     try {
         const { query } = req.query;
         
-        //console.log("Entered try block");
-        //console.log("Received search query:", query);
-        
         if (!query) {
             console.log("Query missing, sending 400 response");
             return res.status(400).json({ message: "Search query is required." });
         }
 
-        // Fetch users from the database
-        //console.log("Fetching users from the database...");
-        const users = await User.find().select("username firstName lastName _id");
-
-        //console.log("Fetched users from DB:", users.length);
-        if (users.length === 0) {
-            console.log("No users found in the database.");
+        // Fetch current user from JWT token (assuming the user ID is passed through JWT)
+        const user = await User.findOne({ userID: req.user.userID });
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
         }
+
+        // Fetch all users from the database
+        const users = await User.find().select("username firstName lastName _id friends");
 
         // Initialize Fuse.js for searching
         const fuse = new Fuse(users, {
@@ -203,30 +201,32 @@ exports.searchUsers = async (req, res) => {
             includeScore: true,
         });
 
-        console.log("Fuse.js search initialized with options:", {
-            keys: ["username", "firstName", "lastName"],
-            threshold: 0.3
-        });
-
         // Perform the search
-        //console.log("Performing search for query:", query);
         const results = fuse.search(query);
-
-        //console.log("Fuse.js search completed.");
-        console.log("Number of results found:", results.length);
-
+        
         // Mapping results
         const matchedUsers = results.map(result => result.item);
 
-        console.log("Matched users:", matchedUsers);
+        // Check if each matched user is a friend of the current user
+        const usersWithFriendStatus = matchedUsers.map(user => {
+            const isFriend = user.friends && user.friends.includes(req.user.userID);
+            // Only return necessary fields + isFriend
+            return {
+                _id: user._id,
+                username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                isFriend,  // Add isFriend status
+            };
+        });
 
-        // Return matched users
-        res.status(200).json(matchedUsers);
+        res.status(200).json(usersWithFriendStatus);
     } catch (error) {
         console.error("Error in searchUsers:", error);
         res.status(500).json({ message: "Server error.", error: error.toString() });
     }
 };
+
 
 
 exports.getUserIDFromUsername = async (req, res) => {
