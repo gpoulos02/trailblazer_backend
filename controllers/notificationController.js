@@ -1,5 +1,6 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User'); // To fetch users for sending notifications
+const authMiddleware = require("../middleware/authMiddleware"); 
 
 // Send a notification to all users (Admin messages)
 exports.sendToAllUsers = async (req, res) => {
@@ -129,6 +130,72 @@ exports.deleteNotification = async (req, res) => {
         res.json({ message: "Notification deleted successfully" });
     } catch (error) {
         console.error('Error deleting notification:', error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+
+
+// Send inactivity alert
+exports.sendInactivityAlert = async (req, res) => {
+    try {
+        const { latitude, longitude } = req.body;
+        const userID = req.user.userID;
+
+        const user = await User.findOne({ userID });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const friends = await User.find({ userID: { $in: user.friends } });
+
+        if (!friends.length) {
+            return res.status(200).json({ message: "No friends to notify." });
+        }
+
+        const notifications = friends.map(friend => ({
+            user: friend.userID,
+            type: "system_alert",
+            message: `🚨 Your friend ${user.firstName || "Your friend"} has been inactive for too long! Last known location: [${latitude}, ${longitude}]`,
+            timestamp: new Date(),
+        }));
+
+        await Notification.insertMany(notifications);
+
+        res.status(200).json({ message: "Alert sent to friends!" });
+    } catch (error) {
+        console.error("Error sending inactivity alert:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// Get all notifications for the logged-in user
+exports.getUserNotifications = async (req, res) => {
+    try {
+        const userID = req.user.userID; // Get user ID from token
+
+        // Find all notifications for the user
+        const notifications = await Notification.find({ user: userID }).sort({ createdAt: -1 });
+
+        res.status(200).json(notifications);
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// GET: Fetch only inactivity alerts for the logged-in user
+exports.getInactivityAlerts = async (req, res) => {
+    try {
+        const userID = req.user.userID; // Get user ID from token
+
+        // Find only "system_alert" type notifications for inactivity
+        const notifications = await Notification.find({
+            user: userID,
+            type: "system_alert",
+        }).sort({ createdAt: -1 });
+
+        res.status(200).json(notifications);
+    } catch (error) {
+        console.error("Error fetching inactivity alerts:", error);
         res.status(500).json({ message: "Server error" });
     }
 };

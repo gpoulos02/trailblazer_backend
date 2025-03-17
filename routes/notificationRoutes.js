@@ -24,4 +24,16 @@ router.post('/send/friends', authMiddleware, notificationController.sendToFriend
 // DELETE: Delete a notification
 router.delete('/:notificationId', authMiddleware, notificationController.deleteNotification);
 
+// Add this route to handle inactivity alerts
+router.post("/inactivity", authMiddleware, notificationController.sendInactivityAlert);
+
+// GET: Fetch notifications for the logged-in user
+router.get("/", authMiddleware, notificationController.getUserNotifications);
+
+router.get("/inactivity-alerts", authMiddleware, notificationController.getInactivityAlerts);
+
+
+
+
+
 module.exports = router;

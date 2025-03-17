@@ -48,6 +48,8 @@ app.use("/api/posts", postRoutes);
 app.use("/api/routes", routeRoutes); // Route planning/navigation routes
 app.use("/api/trails", trailRoutes); // Add trail routes
 app.use("/api/weather", weatherRoutes); // Weather data routes
+app.use("/api/notifications", require("./routes/notificationRoutes"));
+
 
 // Root route
 app.get("/", (req, res) => {
