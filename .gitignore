@@ -1,6 +1,8 @@
 # Node modules
 node_modules/
 
+boler_jsons/
+
 package-lock.json
 package.json
 
