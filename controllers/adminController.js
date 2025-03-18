@@ -16,7 +16,7 @@ exports.approveMountainOwner = async (req, res) => {
     console.log(
       "Attempting to approve Mountain Owner for userId:",
       req.params.userId
-    ); // Debug: log the userId being processed
+    ); 
 
     // Find the user by ID
     const user = await User.findById(req.params.userId);
@@ -215,7 +215,6 @@ exports.getReportedPosts = async (req, res) => {
   }
 };
 
-//delete post fopr admins
 exports.adminDeletePost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -594,7 +593,6 @@ exports.searchUsers = async (req, res) => {
     }
 
     // Fetch users from the database
-    //console.log("Fetching users from the database...");
     const users = await User.find().select(
       "username firstName lastName _id role"
     );
@@ -617,7 +615,6 @@ exports.searchUsers = async (req, res) => {
     });
 
     // Perform the search
-    //console.log("Performing search for query:", query);
     const results = fuse.search(query);
 
     //console.log("Fuse.js search completed.");
@@ -668,5 +665,3 @@ exports.getUserRole = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-// Retrieve all posts in the database

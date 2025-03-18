@@ -3,9 +3,8 @@ const Trail = require("../models/Trail");
 const Chairlift = require("../models/Chairlift");
 const PointOfInterest = require("../models/PointOfInterest");
 const Route = require("../models/Route");
-const User = require("../models/User"); // Ensure you have User model imported
+const User = require("../models/User"); 
 const { v4: uuidv4 } = require("uuid");
-// const Route = require('../models/Route');
 
 exports.findRoutes = async (req, res) => {
   try {
@@ -172,7 +171,6 @@ exports.findRoutes = async (req, res) => {
 };
 
 // Save a route
-
 exports.saveRoute = async (req, res) => {
   try {
     const { name, trails, mountainID } = req.body;
@@ -344,7 +342,6 @@ exports.getRouteNames = async (req, res) => {
   try {
     // Fetch all trails, returning only the 'runName' field
     const trails = await Trail.find({}, "runName"); // This queries the 'runName' field
-    //console.log("Fetched trails:", trails); // Debugging: Log the fetched trails
 
     // If no trails are found, return an empty array with a message
     if (trails.length === 0) {
@@ -354,7 +351,6 @@ exports.getRouteNames = async (req, res) => {
 
     // Respond with the trail names in the expected format
     const trailNames = trails.map((trail) => trail.runName);
-    //console.log("Trail names to return:", trailNames); // Debugging: Log the names that will be returned
 
     res.status(200).json({
       message: "Route names retrieved successfully",

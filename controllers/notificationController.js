@@ -1,5 +1,5 @@
 const Notification = require('../models/Notification');
-const User = require('../models/User'); // To fetch users for sending notifications
+const User = require('../models/User'); 
 const authMiddleware = require("../middleware/authMiddleware"); 
 
 // Send a notification to all users (Admin messages)
@@ -50,7 +50,6 @@ exports.sendToFriends = async (req, res) => {
     }
 };
 
-
 //Send Direct Message
 exports.sendDirectMessage = async (req, res) => {
     try {
@@ -69,7 +68,6 @@ exports.sendDirectMessage = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
-
 
 // Send a friend request notification
 exports.sendFriendRequestNotification = async (req, res) => {
@@ -92,7 +90,6 @@ exports.sendFriendRequestNotification = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
-
 
 // Send a friend accept notification
 exports.sendFriendAcceptNotification = async (req, res) => {
@@ -133,8 +130,6 @@ exports.deleteNotification = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
-
-
 
 // Send inactivity alert
 exports.sendInactivityAlert = async (req, res) => {

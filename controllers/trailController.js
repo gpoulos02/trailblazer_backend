@@ -2,7 +2,6 @@ const Trail = require("../models/Trail");
 const Mountain = require("../models/Mountain");
 
 // Add multiple trails
-// Add multiple trails
 exports.addTrails = async (req, res) => {
   try {
     const { trails, mountainID } = req.body;
@@ -102,7 +101,7 @@ exports.getUniqueDifficulties = async (req, res) => {
 // Get trail name by runID
 exports.getRunNameByRunID = async (req, res) => {
   try {
-    const { runID, mountainID } = req.params; // Fix: use runID instead of runName
+    const { runID, mountainID } = req.params; 
 
     if (!runID || !mountainID) {
       return res

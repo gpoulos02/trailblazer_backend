@@ -1,7 +1,7 @@
 const Metrics = require("../models/Metrics");
 const { v4: uuidv4 } = require("uuid");
 const moment = require("moment");
-const Trail = require("../models/Trail"); // Import the trail model
+const Trail = require("../models/Trail"); 
 const Mountain = require("../models/Mountain");
 
 exports.saveSession = async (req, res) => {
@@ -132,7 +132,6 @@ exports.deleteSession = async (req, res) => {
   }
 };
 
-//gets an overview of all metrics over a given period
 exports.getMetricOverview = async (req, res) => {
   try {
     const metrics = await Metrics.find({ userID: req.user.userID });
@@ -254,7 +253,7 @@ exports.getAllMetrics = async (req, res) => {
 exports.getMetricsByUserId = async (req, res) => {
   try {
     const { userID } = req.user; // Extract userID from the middleware (req.user)
-    console.log("User ID extracted:", userID); // Log the extracted userID // Ensure userID is a string (it could be passed as a string or an ObjectId, so we handle that here)
+    console.log("User ID extracted:", userID); // Log the extracted userID 
     const userIdString = String(userID);
     console.log("User ID as string:", userIdString); // Log the userID after converting to string // Find metrics for the given userID in the database
     const metrics = await Metrics.find({ userID: userID }); // Use string as the query filter
@@ -265,7 +264,7 @@ exports.getMetricsByUserId = async (req, res) => {
       return res
         .status(404)
         .json({ message: "No metrics found for this user" });
-    } // Return the found metrics
+    } 
 
     res.status(200).json(metrics);
   } catch (error) {

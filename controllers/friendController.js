@@ -28,7 +28,6 @@ exports.viewFriendRequests = async (req, res) => {
     }
 };
 
-
 // Send a Friend Request
 exports.sendFriendRequest = async (req, res) => {
     try {
@@ -62,8 +61,6 @@ exports.sendFriendRequest = async (req, res) => {
         receiver.friendRequestsReceived.push(senderID);
         await sender.save();
         await receiver.save();
-
-        // await sendNotification(userID, 'friend_request', sender.username);
 
         res.status(200).json({ message: "Friend request sent." });
     } catch (error) {
@@ -227,8 +224,6 @@ exports.searchUsers = async (req, res) => {
     }
 };
 
-
-
 exports.getUserIDFromUsername = async (req, res) => {
     try {
         const { username } = req.query;
@@ -295,6 +290,7 @@ exports.viewFriends = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 // Checking Pending Friend Requests
 exports.checkPendingRequests = async (req, res) => {
     try {

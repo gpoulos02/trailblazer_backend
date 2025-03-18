@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
-const { v4: uuidv4 } = require('uuid'); // Import UUID
+const { v4: uuidv4 } = require('uuid'); 
 
 const metricsSchema = new mongoose.Schema({
     sessionID: {
         type: String,
         required: true,
-        default: uuidv4, // Automatically generate a unique sessionID
+        default: uuidv4, 
     },
     userID: {
         type: String,

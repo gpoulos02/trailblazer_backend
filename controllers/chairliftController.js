@@ -2,8 +2,6 @@ const Chairlift = require('../models/Chairlift');
 const Mountain = require('../models/Mountain');
 
 // Add multiple chairlifts
-
-// Add multiple chairlifts
 exports.addChairlifts = async (req, res) => {
     try {
         const { chairlifts, mountainID } = req.body;

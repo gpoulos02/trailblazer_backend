@@ -7,11 +7,7 @@ const { sendNotification } = require('../utils/notificationUtils');
 const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
 
-
-
-
 ///////////////////////Creating Posts//////////////////////
-// Create a text post
 // Creating Text Post
 exports.createTextPost = async (req, res) => {
     try {
@@ -77,7 +73,6 @@ exports.createRoutePost = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-
 
 // Creating Performance Post
 exports.createPerformancePost = async (req, res) => {
@@ -167,9 +162,6 @@ exports.getLikeCount = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
       }
 };
-
-
-
 
 // Unliking a Post
 exports.unlikePost = async (req, res) => {
@@ -283,8 +275,6 @@ exports.commentOnPost = async (req, res) => {
     }
 };
 
-
-
 // Delete Post
 exports.deletePost = async (req, res) => {
     try {
@@ -307,7 +297,6 @@ exports.deletePost = async (req, res) => {
         return res.status(500).json({ message: 'Server error' });
     }
 };
-
 
 ////////////////////////////////////Retreiving User Posts///////////////////////////////////
 exports.getMyPosts = async (req, res) => {
@@ -360,9 +349,6 @@ exports.getMyPosts = async (req, res) => {
     }
 };
 
-
-
-// Retrieve posts from all friends
 // Retrieve posts from all friends
 exports.getFriendsPosts = async (req, res) => {
     try {
@@ -426,9 +412,6 @@ exports.getFriendsPosts = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-
-
-
 
 // Retrieve posts from a specific user
 exports.getAllPosts = async (req, res) => {
@@ -550,7 +533,3 @@ exports.getAllPostsInDatabase = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-
-
-
-

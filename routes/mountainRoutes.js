@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const mountainController = require('../controllers/mountainController');
 
-
 // GET: Retrieve all mountains
 router.get('/', mountainController.getAllMountains);
 

@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid'); // To generate UUID
+const { v4: uuidv4 } = require('uuid'); 
 const InvalidatedToken = require('../models/InvalidatedToken');
 const multer = require('multer');
 const path = require('path');
@@ -10,9 +10,8 @@ const sharp = require('sharp');
 const gridfsStream = require('gridfs-stream');
 const mongoose = require('mongoose');
 const { GridFsStorage } = require('multer-gridfs-storage');
-//const firebaseAdmin = require('firebase-admin'); // Import Firebase Admin SDK
 var firebaseAdmin = require("firebase-admin");
-const nodemailer = require('nodemailer'); // Make sure Nodemailer is required
+const nodemailer = require('nodemailer'); 
 
 
 var serviceAccount = require('../config/serviceAccountKey.json');
